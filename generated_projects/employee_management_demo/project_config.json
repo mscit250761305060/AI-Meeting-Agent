@@ -1,0 +1,18 @@
+{
+    "project_title": "Employee Management System",
+    "features": [
+        "Add Employee",
+        "Edit Employee",
+        "Delete Employee"
+    ],
+    "pages": [
+        "Dashboard",
+        "Employee List",
+        "Employee Form"
+    ],
+    "user_flow": [
+        "Admin Login",
+        "Manage Employees",
+        "View Employee List"
+    ]
+}
