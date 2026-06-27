@@ -33,6 +33,46 @@ def extract_requirements(transcript: str):
 
     Example:
 
+    Important Rules:
+
+    - Keep exact page names.
+    - If transcript contains "Employee List" return "Employee List".
+    - Do not rename pages.
+    - Do not shorten page names.
+    - Return only JSON.
+
+    Rules:
+
+    If user says:
+
+    Need login page
+
+    Add:
+    Login Page
+
+    Need dashboard
+
+    Add:
+    Dashboard
+
+    Need employee list
+
+    Add:
+    Employee List
+
+    Need employee form
+
+    Add:
+    Employee Form
+
+    Ignore greetings.
+
+    Ignore names.
+
+    Ignore garbage speech.
+
+    Return unique pages only.
+
     {{
     "project_title": "Employee Management System",
     "features": [
@@ -61,7 +101,7 @@ def extract_requirements(transcript: str):
     client = get_genai_client()
     try:
         response = client.models.generate_content(
-            model="gemini-2.5-flash-lite",
+            model="gemini-3.1-flash-lite",
             contents=prompt
         )
 

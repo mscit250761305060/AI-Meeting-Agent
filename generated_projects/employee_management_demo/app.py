@@ -1,52 +1,54 @@
-from fastapi.middleware.cors import CORSMiddleware
+
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
-items = []
+
+employees = []
 
 @app.get("/")
 def home():
-    return {
-        "project": "Employee Management System"
-    }
+    return FileResponse("index.html")
 
-@app.get("/items")
-def get_items():
-    return items
 
-@app.post("/items")
-def create_item(item: dict):
-    items.append(item)
-    return {
-        "message": "Created",
-        "item": item
-    }
+@app.get("/employees")
+def get_employees():
+    return employees
 
-@app.put("/items/{item_id}")
-def update_item(item_id: int, item: dict):
 
-    if item_id < len(items):
-        items[item_id] = item
+@app.post("/employees")
+def add_employee(employee: dict):
+
+    employees.append(employee)
 
     return {
-        "message": "Updated"
+        "message": "Employee Added",
+        "employee": employee
     }
 
-@app.delete("/items/{item_id}")
-def delete_item(item_id: int):
 
-    if item_id < len(items):
-        items.pop(item_id)
+@app.put("/employees/{employee_id}")
+def update_employee(employee_id: int, employee: dict):
+
+    if employee_id < len(employees):
+        employees[employee_id] = employee
 
     return {
-        "message": "Deleted"
+        "message": "Employee Updated"
     }
+
+
+@app.delete("/employees/{employee_id}")
+def delete_employee(employee_id: int):
+
+    if employee_id < len(employees):
+        employees.pop(employee_id)
+
+    return {
+        "message": "Employee Deleted"
+    }
+
+app.mount("/", StaticFiles(directory=".", html=True), name="static")

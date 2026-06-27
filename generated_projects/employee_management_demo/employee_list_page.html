@@ -1,0 +1,66 @@
+
+            <!DOCTYPE html>
+            <html>
+            <head>
+            <title>Employee List</title>
+            </head>
+            <body>
+
+            <nav>
+                <a href="dashboard_page.html">dashboard page</a> | <a href="employee_list_page.html">employee list page</a> | <a href="employee_form_page.html">employee form page</a> | <a href="login_page.html">login page</a> | 
+            </nav>
+
+            <hr>
+
+            <h1>Employee List</h1>
+
+            <table border="1">
+
+            <thead>
+            <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Department</th>
+            </tr>
+            </thead>
+
+            <tbody id="employeeTable">
+
+            </tbody>
+
+            </table>
+
+            <script>
+
+            async function loadEmployees() {
+
+                const response = await fetch("/employees");
+
+                const employees = await response.json();
+
+                const table =
+                    document.getElementById("employeeTable");
+
+                table.innerHTML = "";
+
+                employees.forEach(employee => {
+
+                    table.innerHTML += `
+                    <tr>
+                        <td>${employee.name}</td>
+                        <td>${employee.email}</td>
+                        <td>${employee.department}</td>
+                    </tr>
+                    `;
+
+                });
+
+            }
+
+            loadEmployees();
+
+            </script>
+
+            </body>
+            </html>
+            

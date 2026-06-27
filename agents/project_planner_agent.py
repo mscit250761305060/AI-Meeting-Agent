@@ -1,20 +1,11 @@
 def plan_project(requirements):
 
-    title = requirements.get("project_title", "").lower()
-
-    if "employee" in title:
-        return {
-            "project_type": "crud_app",
-            "template": "employee_management"
-        }
-
-    if "dashboard" in title:
-        return {
-            "project_type": "dashboard",
-            "template": "admin_dashboard"
-        }
+    title = requirements.get(
+        "project_title",
+        ""
+    ).lower()
 
     return {
-        "project_type": "landing_page",
-        "template": "basic_landing"
+        "project_type": "crud_app",
+        "template": "employee_management"
     }

@@ -8,50 +8,58 @@ def generate_crud_app(requirements, project_path):
     features = requirements.get("features", [])
 
     app_code = f'''
-from fastapi import FastAPI
+    from fastapi import FastAPI
+    from fastapi.responses import FileResponse
+    from fastapi.staticfiles import StaticFiles
 
-app = FastAPI()
+    app = FastAPI()
 
-items = []
+    app.mount("/", StaticFiles(directory=".", html=True), name="static")
 
-@app.get("/")
-def home():
-    return {{
-        "project": "{requirements.get("project_title")}"
-    }}
+    employees = []
 
-@app.get("/items")
-def get_items():
-    return items
+    @app.get("/")
+    def home():
+        return FileResponse("index.html")
 
-@app.post("/items")
-def create_item(item: dict):
-    items.append(item)
-    return {{
-        "message": "Created",
-        "item": item
-    }}
 
-@app.put("/items/{{item_id}}")
-def update_item(item_id: int, item: dict):
+    @app.get("/employees")
+    def get_employees():
+        return employees
 
-    if item_id < len(items):
-        items[item_id] = item
 
-    return {{
-        "message": "Updated"
-    }}
+    @app.post("/employees")
+    def add_employee(employee: dict):
 
-@app.delete("/items/{{item_id}}")
-def delete_item(item_id: int):
+        employees.append(employee)
 
-    if item_id < len(items):
-        items.pop(item_id)
+        return {{
+            "message": "Employee Added",
+            "employee": employee
+        }}
 
-    return {{
-        "message": "Deleted"
-    }}
-'''
+
+    @app.put("/employees/{{employee_id}}")
+    def update_employee(employee_id: int, employee: dict):
+
+        if employee_id < len(employees):
+            employees[employee_id] = employee
+
+        return {{
+            "message": "Employee Updated"
+        }}
+
+
+    @app.delete("/employees/{{employee_id}}")
+    def delete_employee(employee_id: int):
+
+        if employee_id < len(employees):
+            employees.pop(employee_id)
+
+        return {{
+            "message": "Employee Deleted"
+        }}
+    '''
 
     with open(
         project_path / "app.py",

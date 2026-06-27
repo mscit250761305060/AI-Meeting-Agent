@@ -6,13 +6,12 @@
         "Delete Employee"
     ],
     "pages": [
-        "Dashboard",
-        "Employee List",
-        "Employee Form"
+        "dashboard page",
+        "employee list page",
+        "employee form page",
+        "login page"
     ],
     "user_flow": [
-        "Admin Login",
-        "Manage Employees",
-        "View Employee List"
+        "Manage Employees"
     ]
 }

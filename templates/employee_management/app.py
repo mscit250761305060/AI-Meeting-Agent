@@ -16,7 +16,9 @@ def get_employees():
 
 @app.post("/employees")
 def add_employee(employee: dict):
+
     employees.append(employee)
+
     return {
         "message": "Employee Added",
         "employee": employee

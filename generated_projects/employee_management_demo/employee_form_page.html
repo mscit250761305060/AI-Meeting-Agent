@@ -1,0 +1,59 @@
+
+
+            <!DOCTYPE html>
+            <html>
+            <head>
+            <title>Employee Form</title>
+            </head>
+            <body>
+
+            <nav>
+                <a href="dashboard_page.html">dashboard page</a> | <a href="employee_list_page.html">employee list page</a> | <a href="employee_form_page.html">employee form page</a> | <a href="login_page.html">login page</a> | 
+            </nav>
+
+            <hr>
+
+            <h1>Employee Form</h1>
+
+            <form>
+
+            <label>Name</label><br>
+            <input id="name" type="text"><br><br>
+
+            <label>Email</label><br>
+            <input id="email" type="email"><br><br>
+
+            <label>Department</label><br>
+            <input id="department" type="text"><br><br>
+
+            <button type="button" onclick="saveEmployee()">
+            Save Employee
+            </button>
+
+            </form>
+
+            <script>
+
+                async function saveEmployee() {
+
+                    const name = document.getElementById("name").value;
+                    const email = document.getElementById("email").value;
+                    const department = document.getElementById("department").value;
+
+                    await fetch("/employees", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({name, email, department })
+                    });
+
+                    alert("Employee Saved");
+                }
+
+            </script>
+
+            </body>
+            </html>
+
+            

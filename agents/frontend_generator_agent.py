@@ -26,6 +26,36 @@ def generate_frontend(requirements, project_path):
         }
     </ul>
 
+    <h2>Pages</h2>
+
+    <ul>
+
+    <li>
+    <a href="dashboard_page.html">
+    Dashboard
+    </a>
+    </li>
+
+    <li>
+    <a href="employee_list_page.html">
+    Employee List
+    </a>
+    </li>
+
+    <li>
+    <a href="employee_form_page.html">
+    Employee Form
+    </a>
+    </li>
+
+    <li>
+    <a href="login_page.html">
+    Login
+    </a>
+    </li>
+
+    </ul>
+
     <h2>Add Item</h2>
 
     <input id="name" placeholder="Enter Name">
