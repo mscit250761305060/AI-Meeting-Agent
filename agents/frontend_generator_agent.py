@@ -2,18 +2,22 @@ from pathlib import Path
 
 
 def generate_frontend(requirements, project_path):
-
     project_path = Path(project_path)
+
+    pages_html = ""
+    for page in requirements.get("pages", []):
+        filename = page.lower().strip().replace(" ", "_") + ".html"
+        pages_html += f'<li><a href="{filename}">{page}</a></li>\n'
 
     html = f"""
 <!DOCTYPE html>
 <html>
 <head>
-    <title>{requirements.get("project_title")}</title>
+    <title>{requirements.get("project_title") or requirements.get("project_name")}</title>
 </head>
 <body>
 
-    <h1>{requirements.get("project_title")}</h1>
+    <h1>{requirements.get("project_title") or requirements.get("project_name")}</h1>
 
     <h2>Features</h2>
 
@@ -29,31 +33,7 @@ def generate_frontend(requirements, project_path):
     <h2>Pages</h2>
 
     <ul>
-
-    <li>
-    <a href="dashboard_page.html">
-    Dashboard
-    </a>
-    </li>
-
-    <li>
-    <a href="employee_list_page.html">
-    Employee List
-    </a>
-    </li>
-
-    <li>
-    <a href="employee_form_page.html">
-    Employee Form
-    </a>
-    </li>
-
-    <li>
-    <a href="login_page.html">
-    Login
-    </a>
-    </li>
-
+        {pages_html}
     </ul>
 
     <h2>Add Item</h2>

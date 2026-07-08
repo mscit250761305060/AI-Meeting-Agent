@@ -1,5 +1,4 @@
-
-            <!DOCTYPE html>
+<!DOCTYPE html>
             <html>
             <head>
             <title>Employee List</title>
@@ -7,12 +6,24 @@
             <body>
 
             <nav>
-                <a href="dashboard_page.html">dashboard page</a> | <a href="employee_list_page.html">employee list page</a> | <a href="employee_form_page.html">employee form page</a> | <a href="login_page.html">login page</a> | 
+                <a href="/dashboard_page.html">dashboard page</a> | <a href="/employee_list_page.html">employee list page</a> | <a href="/employee_form_page.html">employee form page</a> | <a href="/login_page.html">login page</a> | 
             </nav>
 
             <hr>
 
             <h1>Employee List</h1>
+
+            <hr>
+
+            <h3>Search Employee</h3>
+
+            <input
+            id="searchBox"
+            type="text"
+            placeholder="Search Employee by Name, Email or Department">
+
+            <!-- Export Button Added Here -->
+            <button id="exportButton">Export to CSV</button>
 
             <table border="1">
 
@@ -31,36 +42,100 @@
             </table>
 
             <script>
+            let allEmployees = []; // Store all fetched employees
+            let currentDisplayedEmployees = []; // Store employees currently displayed (after filtering)
 
             async function loadEmployees() {
+                try {
+                    const response = await fetch("/employees");
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    allEmployees = await response.json();
+                    displayEmployees(allEmployees); // Display all employees initially
+                } catch (error) {
+                    console.error("Error loading employees:", error);
+                    const tableBody = document.getElementById("employeeTable");
+                    tableBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: red;">Failed to load employees. Please try again later.</td></tr>`;
+                }
+            }
 
-                const response = await fetch("/employees");
+            function displayEmployees(employeesToDisplay) {
+                const tableBody = document.getElementById("employeeTable");
+                tableBody.innerHTML = ""; // Clear existing rows
+                currentDisplayedEmployees = employeesToDisplay; // Update the currently displayed employees
 
-                const employees = await response.json();
+                if (employeesToDisplay.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="3" style="text-align: center;">No employees found.</td></tr>`;
+                    return;
+                }
 
-                const table =
-                    document.getElementById("employeeTable");
-
-                table.innerHTML = "";
-
-                employees.forEach(employee => {
-
-                    table.innerHTML += `
+                employeesToDisplay.forEach(employee => {
+                    tableBody.innerHTML += `
                     <tr>
                         <td>${employee.name}</td>
                         <td>${employee.email}</td>
                         <td>${employee.department}</td>
                     </tr>
                     `;
-
                 });
-
             }
 
-            loadEmployees();
+            // Function to export data to CSV
+            function exportToCsv(filename, employeesData) {
+                if (employeesData.length === 0) {
+                    alert("No data to export.");
+                    return;
+                }
 
+                // Define CSV headers
+                const headers = ["Name", "Email", "Department"];
+                
+                // Map employee objects to arrays of values for CSV rows
+                const rows = employeesData.map(e => [e.name, e.email, e.department]);
+
+                let csvContent = "data:text/csv;charset=utf-8,";
+                csvContent += headers.join(",") + "\r\n"; // Add headers to CSV
+
+                rows.forEach(rowArray => {
+                    // Quote each field and escape any double quotes within fields
+                    let row = rowArray.map(field => `"${String(field).replace(/"/g, '""')}"`).join(",");
+                    csvContent += row + "\r\n";
+                });
+
+                // Create a temporary link element to trigger the download
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", filename);
+                document.body.appendChild(link); // Required for Firefox compatibility
+                link.click();
+                document.body.removeChild(link); // Clean up the temporary link
+            }
+
+            // Add event listener for search box input and export button
+            document.addEventListener('DOMContentLoaded', () => {
+                const searchBox = document.getElementById("searchBox");
+                searchBox.addEventListener("keyup", () => {
+                    const searchTerm = searchBox.value.toLowerCase().trim();
+                    const filteredEmployees = allEmployees.filter(employee =>
+                        employee.name.toLowerCase().includes(searchTerm) ||
+                        employee.email.toLowerCase().includes(searchTerm) ||
+                        employee.department.toLowerCase().includes(searchTerm)
+                    );
+                    displayEmployees(filteredEmployees);
+                });
+
+                const exportButton = document.getElementById("exportButton");
+                exportButton.addEventListener("click", () => {
+                    // Export the employees currently displayed in the table (after any filtering)
+                    exportToCsv("employees.csv", currentDisplayedEmployees);
+                });
+            });
+
+            // Initial load of employees when the page loads
+            loadEmployees();
             </script>
 
             </body>
             </html>
-            

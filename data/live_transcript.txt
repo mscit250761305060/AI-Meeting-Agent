@@ -1,6 +1,1 @@
-employee management system.
-dashboard page
-Employee List Page
-employee homepage
-employee form page
-Login Page
+Hello, my name is Alice. I want an employee management system. The system should have a dashboard, employee list, and employee form page. The features are adding employees, editing employees, and deleting employees.

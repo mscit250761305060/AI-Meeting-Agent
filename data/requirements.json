@@ -1,17 +1,22 @@
 {
+    "project_name": "Employee Management System",
     "project_title": "Employee Management System",
+    "industry": "HR",
     "features": [
-        "Add Employee",
-        "Edit Employee",
-        "Delete Employee"
+        "Adding employees",
+        "Editing employees",
+        "Deleting employees"
     ],
     "pages": [
-        "dashboard page",
-        "employee list page",
-        "employee form page",
-        "login page"
+        "dashboard",
+        "employee list",
+        "employee form page"
     ],
-    "user_flow": [
-        "Manage Employees"
-    ]
+    "frontend": "HTML/CSS/JS",
+    "backend": "FastAPI",
+    "database": "SQLite",
+    "user_roles": [
+        "Admin"
+    ],
+    "page_updates": []
 }

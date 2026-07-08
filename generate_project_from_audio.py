@@ -1,4 +1,4 @@
-import whisper
+from faster_whisper import WhisperModel
 
 from agents.requirement_agent import (
     extract_requirements
@@ -24,28 +24,22 @@ from agents.frontend_generator_agent import (
     generate_frontend
 )
 
-from agents.ui_generator_agent import (
-    generate_ui
-)
-
 from agents.page_generator_agent import (
     generate_pages
 )
 
-
-
-
 print("Loading Whisper...")
 
-model = whisper.load_model("base")
+model = WhisperModel("base", device="cpu", compute_type="int8")
 
 print("Transcribing Audio...")
 
-result = model.transcribe(
-    "audio/test.m4a"
+segments, info = model.transcribe(
+    "audio/test.m4a",
+    beam_size=1
 )
 
-transcript = result["text"]
+transcript = " ".join(s.text for s in segments)
 
 print("\nTRANSCRIPT:")
 print(transcript)
@@ -87,15 +81,24 @@ generate_frontend(
     project["project_path"]
 )
 
-generate_ui(
-    requirements,
-    project["project_path"]
-)
-
 generate_pages(
     requirements,
     project["project_path"]
 )
 
-print("\nSUCCESS!")
-print(project["project_path"])
+print("\nRunning project server...")
+from agents.project_runner_agent import run_project
+runner_result = run_project(project["project_path"])
+
+features_list = requirements.get("features", [])
+pages_list = requirements.get("pages", [])
+proj_name = requirements.get("project_name") or requirements.get("project_title") or "AI Generated Project"
+running_url = "http://127.0.0.1:8001"
+
+print("\nProject Generated Successfully\n")
+print(f"Project Name: {proj_name}")
+print(f"Features Created: {', '.join(features_list)}")
+print(f"Pages Created: {', '.join(pages_list)}")
+print(f"Backend Status: {'Running' if runner_result.get('success') else 'Failed'}")
+print(f"Frontend Status: {'Running' if runner_result.get('success') else 'Failed'}")
+print(f"Running URL: {running_url}")

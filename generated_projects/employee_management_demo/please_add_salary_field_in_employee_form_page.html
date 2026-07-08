@@ -1,0 +1,59 @@
+
+
+            <!DOCTYPE html>
+            <html>
+            <head>
+            <title>Employee Form</title>
+            </head>
+            <body>
+
+            <div>
+                <a href="/employee-list">employee list page</a> | <a href="#">profile page</a> | <a href="/employee-form">please add salary field in employee form page</a> | <a href="/employee-list">please add search bar in employee list page</a> | <a href="/employee-form">employee form page</a> | <a href="#">about page</a> | <a href="/dashboard">dashboard page</a> | <a href="#">analytics page</a> | <a href="#">settings page</a> | <a href="#">reports page</a> | <a href="/login">login page</a> | 
+            </div>
+
+            <hr>
+
+            <h1>Employee Form</h1>
+
+            <form>
+
+            <label>Name</label><br>
+            <input id="name" type="text"><br><br>
+
+            <label>Email</label><br>
+            <input id="email" type="email"><br><br>
+
+            <label>Department</label><br>
+            <input id="department" type="text"><br><br>
+
+            <button type="button" onclick="saveEmployee()">
+            Save Employee
+            </button>
+
+            </form>
+
+            <script>
+
+                async function saveEmployee() {
+
+                    const name = document.getElementById("name").value;
+                    const email = document.getElementById("email").value;
+                    const department = document.getElementById("department").value;
+
+                    await fetch("/employees", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({name, email, department })
+                    });
+
+                    alert("Employee Saved");
+                }
+
+            </script>
+
+            </body>
+            </html>
+
+            

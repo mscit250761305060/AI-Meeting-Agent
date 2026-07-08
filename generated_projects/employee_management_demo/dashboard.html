@@ -1,0 +1,60 @@
+
+
+            <!DOCTYPE html>
+            <html>
+
+            <head>
+                <title>Dashboard</title>
+            </head>
+
+            <body>
+
+            <nav>
+                <a href="/dashboard">Dashboard</a> | <a href="#">Employees</a> | <a href="/employee-form">Employee Form</a> | 
+            </nav>
+
+            <hr>
+
+            <h1>Dashboard</h1>
+
+            <div>
+                <h3>Total Employees</h3>
+                <p id="totalEmployees">0</p>
+            </div>
+
+            <div>
+                <h3>Departments</h3>
+                <p id="departments">0</p>
+            </div>
+
+            <div>
+                <h3>Active Users</h3>
+                <p id="activeUsers">0</p>
+            </div>
+
+            <script>
+
+            async function loadDashboard() {
+
+                const response = await fetch("/dashboard-stats");
+
+                const stats = await response.json();
+
+                document.getElementById("totalEmployees").innerText =
+                    stats.total_employees;
+
+                document.getElementById("departments").innerText =
+                    stats.departments;
+
+                document.getElementById("activeUsers").innerText =
+                    stats.active_users;
+            }
+
+            loadDashboard();
+
+            </script>
+
+            </body>
+            </html>
+
+            

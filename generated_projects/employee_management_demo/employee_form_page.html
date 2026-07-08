@@ -1,6 +1,4 @@
-
-
-            <!DOCTYPE html>
+<!DOCTYPE html>
             <html>
             <head>
             <title>Employee Form</title>
@@ -8,7 +6,7 @@
             <body>
 
             <nav>
-                <a href="dashboard_page.html">dashboard page</a> | <a href="employee_list_page.html">employee list page</a> | <a href="employee_form_page.html">employee form page</a> | <a href="login_page.html">login page</a> | 
+                <a href="/dashboard_page.html">dashboard page</a> | <a href="/employee_list_page.html">employee list page</a> | <a href="/employee_form_page.html">employee form page</a> | <a href="/login_page.html">login page</a> | 
             </nav>
 
             <hr>
@@ -26,6 +24,9 @@
             <label>Department</label><br>
             <input id="department" type="text"><br><br>
 
+            <label>Salary</label><br>
+            <input id="salary" type="number"><br><br>
+
             <button type="button" onclick="saveEmployee()">
             Save Employee
             </button>
@@ -39,13 +40,14 @@
                     const name = document.getElementById("name").value;
                     const email = document.getElementById("email").value;
                     const department = document.getElementById("department").value;
+                    const salary = document.getElementById("salary").value; // Get salary value
 
                     await fetch("/employees", {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json"
                         },
-                        body: JSON.stringify({name, email, department })
+                        body: JSON.stringify({name, email, department, salary }) // Include salary in the payload
                     });
 
                     alert("Employee Saved");
@@ -55,5 +57,3 @@
 
             </body>
             </html>
-
-            

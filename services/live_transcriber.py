@@ -1,12 +1,12 @@
 import speech_recognition as sr
 from pathlib import Path
-import whisper
+from faster_whisper import WhisperModel
 import os
 import io
 
 def start_live_transcription():
     print("System: Loading Whisper AI Model (base)... Please wait...")
-    model = whisper.load_model("small")
+    model = WhisperModel("base", device="cpu", compute_type="int8")
     print("System: Whisper Model loaded successfully!")
 
     recognizer = sr.Recognizer()
@@ -34,8 +34,8 @@ def start_live_transcription():
                         f.write(wav_data.read())
                     
                     # Fixed language to English to avoid foreign language hallucinations
-                    result = model.transcribe(temp_filename, fp16=False, language="en")
-                    text = result["text"].strip()
+                    segments, info = model.transcribe(temp_filename, language="en")
+                    text = " ".join(s.text for s in segments).strip()
                     
                     if os.path.exists(temp_filename):
                         os.remove(temp_filename)

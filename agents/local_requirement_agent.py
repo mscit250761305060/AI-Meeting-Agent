@@ -9,7 +9,8 @@ def extract_requirements_local(transcript):
         "project_title": "",
         "features": [],
         "pages": [],
-        "user_flow": []
+        "user_flow": [],
+        "page_updates": []
     }
 
     # Project detection
@@ -24,27 +25,40 @@ def extract_requirements_local(transcript):
             "Snake Game"
         )
 
-    # Page detection
-
-    page_patterns = [
+    valid_pages = [
         "dashboard page",
         "employee list page",
         "employee form page",
         "login page",
-        "sign up page",
-        "registration page",
-        "signup page",
-        "registration page",
-        "home page",
-        "profile page"
+        "reports page",
+        "settings page",
+        "analytics page",
+        "profile page",
+        "about page",
+        "contact page"
     ]
 
-    for page in page_patterns:
+    for line in text.splitlines():
 
-        if page in text:
+        line = line.strip()
 
-            if page not in requirements["pages"]:
-                requirements["pages"].append(page)
+        if not line:
+            continue
+
+        # Ignore update instructions
+        if (
+            "please" in line
+            or "add" in line
+            or "search" in line
+            or "salary" in line
+            or "export" in line
+        ):
+            continue
+
+        if line in valid_pages:
+
+            if line not in requirements["pages"]:
+                requirements["pages"].append(line)
 
     # Features
 
@@ -59,5 +73,46 @@ def extract_requirements_local(transcript):
     requirements["user_flow"] = [
         "Manage Employees"
     ]
+
+    # Page Updates
+
+    if (
+        "search" in text
+        and "employee list" in text
+    ):
+
+        requirements["page_updates"].append({
+
+            "page": "employee list page",
+
+            "instruction": "Add Search Bar"
+
+        })
+
+    if (
+        "salary" in text
+        and "employee form" in text
+    ):
+
+        requirements["page_updates"].append({
+
+            "page": "employee form page",
+
+            "instruction": "Add Salary Field"
+
+        })
+
+    if (
+        "export" in text
+        and "employee list" in text
+    ):
+
+        requirements["page_updates"].append({
+
+            "page": "employee list page",
+
+            "instruction": "Add Export Button"
+
+        })
 
     return requirements

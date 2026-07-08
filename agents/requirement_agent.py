@@ -31,69 +31,26 @@ def extract_requirements(transcript: str):
 
     Return ONLY valid JSON.
 
-    Example:
-
-    Important Rules:
-
-    - Keep exact page names.
-    - If transcript contains "Employee List" return "Employee List".
-    - Do not rename pages.
-    - Do not shorten page names.
-    - Return only JSON.
-
-    Rules:
-
-    If user says:
-
-    Need login page
-
-    Add:
-    Login Page
-
-    Need dashboard
-
-    Add:
-    Dashboard
-
-    Need employee list
-
-    Add:
-    Employee List
-
-    Need employee form
-
-    Add:
-    Employee Form
-
-    Ignore greetings.
-
-    Ignore names.
-
-    Ignore garbage speech.
-
-    Return unique pages only.
-
+    Required JSON format:
     {{
-    "project_title": "Employee Management System",
-    "features": [
-        "Add Employee",
-        "Edit Employee",
-        "Delete Employee"
-    ],
-    "pages": [
-        "Dashboard",
-        "Employee List",
-        "Employee Form"
-    ],
-    "user_flow": [
-        "Admin Login",
-        "Manage Employees",
-        "View Employee List"
-    ]
+     "project_name": "Name of the project",
+     "project_title": "Name of the project (same as project_name)",
+     "industry": "Industry category (e.g. HR, E-commerce, Finance)",
+     "features": ["list of features"],
+     "pages": ["list of pages"],
+     "frontend": "HTML/CSS/JS",
+     "backend": "FastAPI",
+     "database": "SQLite",
+     "user_roles": ["list of user roles"],
+     "page_updates": []
     }}
 
-    Transcript:
+    Rules:
+    - Keep exact page names.
+    - If transcript contains page update instructions (e.g. "add search bar to employee list"), put them in page_updates list as {{"page": "employee list", "instruction": "Add Search Bar"}}.
+    - Return ONLY valid JSON.
 
+    Transcript:
     {transcript}
     """
 
@@ -101,7 +58,7 @@ def extract_requirements(transcript: str):
     client = get_genai_client()
     try:
         response = client.models.generate_content(
-            model="gemini-3.1-flash-lite",
+            model="gemini-2.5-flash",
             contents=prompt
         )
 

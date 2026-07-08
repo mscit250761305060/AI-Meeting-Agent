@@ -1,20 +1,20 @@
-import whisper
-
+from faster_whisper import WhisperModel
 from agents.requirement_agent import (
     extract_requirements
 )
 
 print("Loading Whisper Model...")
 
-model = whisper.load_model("base")
+model = WhisperModel("base", device="cpu", compute_type="int8")
 
 print("Transcribing Audio...")
 
-result = model.transcribe(
-    "audio/test.m4a"
+segments, info = model.transcribe(
+    "audio/test.m4a",
+    beam_size=1
 )
 
-transcript = result["text"]
+transcript = " ".join(s.text for s in segments)
 
 print("\nTRANSCRIPT:\n")
 print(transcript)

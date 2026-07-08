@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+pydantic
+email-validator
+sqlalchemy
+google-genai
+pyaudiowpatch
+faster-whisper
+PySide6
+python-dotenv
+psutil
+SpeechRecognition
+python-multipart
+Pillow

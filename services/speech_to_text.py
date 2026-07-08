@@ -11,7 +11,7 @@ def transcribe_microphone():
 
         recognizer.adjust_for_ambient_noise(
             source,
-            duration=1
+            duration=5
         )
 
         audio = recognizer.listen(source)

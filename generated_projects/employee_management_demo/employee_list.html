@@ -1,0 +1,85 @@
+
+            <!DOCTYPE html>
+            <html>
+            <head>
+            <title>Employee List</title>
+            </head>
+            <body>
+
+            <div>
+                <a href="dashboard.html">dashboard</a> | <a href="employee_list.html">employee list</a> | <a href="employee_form_page.html">employee form page</a> | 
+            </div>
+
+            <hr>
+
+            <h1>Employee List</h1>
+
+            <table border="1">
+
+            <thead>
+            <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Department</th>
+            <th>Action</th>
+            </tr>
+            </thead>
+
+            <tbody id="employeeTable">
+
+            </tbody>
+
+            </table>
+
+            <script>
+
+            async function loadEmployees() {
+
+                const response = await fetch("/employees");
+
+                const employees = await response.json();
+
+                const table =
+                    document.getElementById("employeeTable");
+
+                table.innerHTML = "";
+
+                employees.forEach((employee, index) => {
+
+                    table.innerHTML += `
+                    <tr>
+                        <td>${employee.name}</td>
+                        <td>${employee.email}</td>
+                        <td>${employee.department}</td>
+
+                        <td>
+                            <button onclick="deleteEmployee(${index})">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                    `;
+
+                });
+
+            }
+
+            loadEmployees();
+
+            async function deleteEmployee(id) {
+
+                await fetch("/employees/" + id, {
+
+                    method: "DELETE"
+
+                });
+
+                loadEmployees();
+
+            }
+
+            </script>
+
+            </body>
+            </html>
+            

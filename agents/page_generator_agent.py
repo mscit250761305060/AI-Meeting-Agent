@@ -24,24 +24,12 @@ def generate_pages(requirements, project_path):
 
         nav_file = (
             nav_page.lower()
+            .strip()
             .replace(" ", "_")
             + ".html"
         )
 
-        if "dashboard" in nav_page.lower():
-            nav_link = "/dashboard"
-
-        elif "employee list" in nav_page.lower():
-            nav_link = "/employee-list"
-
-        elif "employee form" in nav_page.lower():
-            nav_link = "/employee-form"
-
-        elif "login" in nav_page.lower():
-            nav_link = "/login"
-
-        else:
-            nav_link = "#"
+        nav_link = nav_file
 
         navigation += (
             f'<a href="{nav_link}">'
@@ -102,18 +90,18 @@ def generate_pages(requirements, project_path):
 
             content = f"""
 
-
             <!DOCTYPE html>
-
             <html>
+
             <head>
-            <title>Dashboard</title>
+                <title>Dashboard</title>
             </head>
+
             <body>
 
-            <div>
+            <nav>
                 {navigation}
-            </div>
+            </nav>
 
             <hr>
 
@@ -121,21 +109,44 @@ def generate_pages(requirements, project_path):
 
             <div>
                 <h3>Total Employees</h3>
-                <p>25</p>
+                <p id="totalEmployees">0</p>
             </div>
 
             <div>
                 <h3>Departments</h3>
-                <p>5</p>
+                <p id="departments">0</p>
             </div>
 
             <div>
                 <h3>Active Users</h3>
-                <p>18</p>
+                <p id="activeUsers">0</p>
             </div>
+
+            <script>
+
+            async function loadDashboard() {{
+
+                const response = await fetch("/dashboard-stats");
+
+                const stats = await response.json();
+
+                document.getElementById("totalEmployees").innerText =
+                    stats.total_employees;
+
+                document.getElementById("departments").innerText =
+                    stats.departments;
+
+                document.getElementById("activeUsers").innerText =
+                    stats.active_users;
+            }}
+
+            loadDashboard();
+
+            </script>
 
             </body>
             </html>
+
             """
 
 
@@ -169,6 +180,7 @@ def generate_pages(requirements, project_path):
             <th>Name</th>
             <th>Email</th>
             <th>Department</th>
+            <th>Action</th>
             </tr>
             </thead>
 
@@ -191,13 +203,19 @@ def generate_pages(requirements, project_path):
 
                 table.innerHTML = "";
 
-                employees.forEach(employee => {{
+                employees.forEach((employee, index) => {{
 
                     table.innerHTML += `
                     <tr>
                         <td>${{employee.name}}</td>
                         <td>${{employee.email}}</td>
                         <td>${{employee.department}}</td>
+
+                        <td>
+                            <button onclick="deleteEmployee(${{index}})">
+                                Delete
+                            </button>
+                        </td>
                     </tr>
                     `;
 
@@ -206,6 +224,18 @@ def generate_pages(requirements, project_path):
             }}
 
             loadEmployees();
+
+            async function deleteEmployee(id) {{
+
+                await fetch("/employees/" + id, {{
+
+                    method: "DELETE"
+
+                }});
+
+                loadEmployees();
+
+            }}
 
             </script>
 
@@ -304,13 +334,24 @@ def generate_pages(requirements, project_path):
             """
 
 
-        with open(
-            project_path / filename,
-            "w",
-            encoding="utf-8"
-        ) as f:
+        page_file = project_path / filename
 
-            f.write(content)
+        # Do not overwrite existing pages
+        if page_file.exists():
+
+            print(f"Skipping existing page: {filename}")
+
+        else:
+
+            with open(
+                page_file,
+                "w",
+                encoding="utf-8"
+            ) as f:
+
+                f.write(content)
+
+            print(f"Generated new page: {filename}")
 
     return {
         "status": "pages_generated"

@@ -1,6 +1,6 @@
 import whisper
 
-model = whisper.load_model("base")
+model = whisper.load_model("medium")
 
 result = model.transcribe(
     "audio/test.m4a"
