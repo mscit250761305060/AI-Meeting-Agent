@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - AI Meeting Agent</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="/static/js/tailwind.min.js"></script>
+    <script src="/static/js/feather.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: { 400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7' },
+                        dark: { 950: '#030712', 900: '#0f172a', 800: '#1e293b', 700: '#334155' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #030712; color: #f8fafc; overflow: hidden; }
+        
+        .bg-mesh {
+            position: fixed; inset: 0; z-index: -2;
+            background-color: #030712;
+            overflow: hidden;
+        }
+        .bg-mesh::after {
+            content: '';
+            position: absolute;
+            width: 700px; height: 700px;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.15;
+            background: #818cf8;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .auth-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
+            animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        
+        @keyframes slideUpFade { 
+            from { opacity: 0; transform: translateY(20px) scale(0.98); } 
+            to { opacity: 1; transform: translateY(0) scale(1); } 
+        }
+
+        .input-glass {
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .input-glass:focus {
+            background: rgba(30, 41, 59, 0.8);
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 1px #38bdf8;
+            outline: none;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased min-h-screen flex items-center justify-center p-6">
+    <div class="bg-mesh"></div>
+
+    <div class="w-full max-w-md auth-card rounded-3xl p-8 relative overflow-hidden">
+        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 to-brand-400"></div>
+        
+        <div class="text-center mb-8">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-500 to-blue-600 flex items-center justify-center shadow-lg mx-auto mb-4">
+                <i data-feather="cpu" class="text-white w-6 h-6"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-white mb-2">Create Account</h2>
+            <p class="text-gray-400 text-sm">Start automating your full-stack generation.</p>
+        </div>
+
+        <div id="reg-error" class="hidden mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs"></div>
+
+        <form id="registerForm" class="space-y-3.5">
+            <div>
+                <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1.5">Full Name</label>
+                <div class="relative">
+                    <i data-feather="user" class="absolute left-3.5 top-3.5 w-4 h-4 text-gray-500"></i>
+                    <input id="reg-fullname" type="text" placeholder="John Doe" class="w-full input-glass rounded-xl pl-10 pr-4 py-2.5 text-sm placeholder-gray-500">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1.5">Username</label>
+                <div class="relative">
+                    <i data-feather="at-sign" class="absolute left-3.5 top-3.5 w-4 h-4 text-gray-500"></i>
+                    <input id="reg-username" type="text" required placeholder="johndoe" class="w-full input-glass rounded-xl pl-10 pr-4 py-2.5 text-sm placeholder-gray-500">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1.5">Email Address</label>
+                <div class="relative">
+                    <i data-feather="mail" class="absolute left-3.5 top-3.5 w-4 h-4 text-gray-500"></i>
+                    <input id="reg-email" type="email" required placeholder="you@company.com" class="w-full input-glass rounded-xl pl-10 pr-4 py-2.5 text-sm placeholder-gray-500">
+                </div>
+            </div>
+            
+            <div>
+                <label class="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-1.5">Password</label>
+                <div class="relative">
+                    <i data-feather="lock" class="absolute left-3.5 top-3.5 w-4 h-4 text-gray-500"></i>
+                    <input id="reg-password" type="password" required minlength="6" placeholder="At least 6 characters" class="w-full input-glass rounded-xl pl-10 pr-4 py-2.5 text-sm placeholder-gray-500">
+                </div>
+            </div>
+
+            <button id="reg-btn" type="submit" class="w-full bg-brand-500 hover:bg-brand-400 text-white font-semibold py-3 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand-500/20 mt-4">
+                <span>Create Account</span>
+            </button>
+        </form>
+
+        <div class="mt-4 relative flex py-2 items-center">
+            <div class="flex-grow border-t border-white/10"></div>
+            <span class="flex-shrink mx-3 text-xs uppercase tracking-wider text-gray-500">Or continue with</span>
+            <div class="flex-grow border-t border-white/10"></div>
+        </div>
+
+        <button id="google-reg-btn" type="button" onclick="registerWithGoogle()" class="w-full mt-1 input-glass hover:bg-white/10 text-white font-medium py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 text-sm border border-white/10">
+            <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z"/><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5.1 3.7-8.8z"/><path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.3 0 15.2s.7 5.5 1.9 7.9l3.7-2.9c0-.2 0-.2 0-.2z"/><path fill="#34A853" d="M12 23.5c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2-6.4-4.8L1.9 17c1.8 3.7 5.6 6.5 10.1 6.5z"/></svg>
+            <span>Continue with Google</span>
+        </button>
+
+        <p class="mt-6 text-center text-sm text-gray-400">
+            Already have an account? 
+            <a href="/login" class="text-brand-400 hover:text-brand-300 font-medium transition-colors">Log in</a>
+        </p>
+    </div>
+
+        <!-- Google OAuth Setup Modal -->
+        <div id="google-setup-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+            <div class="auth-card max-w-lg w-full rounded-2xl p-6 border border-white/10 space-y-4">
+                <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                    <div class="flex items-center gap-2 text-brand-400 font-semibold text-sm">
+                        <i data-feather="settings" class="w-4 h-4"></i>
+                        <span>Google OAuth Setup Required</span>
+                    </div>
+                    <button onclick="closeGoogleSetupModal()" class="text-gray-400 hover:text-white">
+                        <i data-feather="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <p class="text-xs text-gray-300 leading-relaxed">
+                    One-click Google authentication requires Google Cloud OAuth 2.0 credentials configured in your environment.
+                </p>
+                <div class="space-y-2 text-xs text-gray-400 bg-black/40 p-4 rounded-xl border border-white/5 font-mono">
+                    <div class="text-white font-semibold mb-1">Configuration Steps:</div>
+                    <p>1. Open Google Cloud Console &rarr; APIs & Services &rarr; Credentials.</p>
+                    <p>2. Create OAuth Client ID (Application type: <b>Web application</b>).</p>
+                    <p>3. Set Authorized redirect URI to:</p>
+                    <div class="p-2 bg-dark-900 rounded border border-white/10 text-brand-300 select-all">http://localhost:8000/auth/google/callback</div>
+                    <p>4. Add to your <code class="text-white">.env</code> file:</p>
+                    <pre class="text-[11px] text-gray-300 bg-dark-900 p-2 rounded">GOOGLE_CLIENT_ID=your_client_id_here
+GOOGLE_CLIENT_SECRET=your_client_secret_here</pre>
+                    <p>5. Restart the server.</p>
+                </div>
+                <div class="flex justify-end pt-2">
+                    <button onclick="closeGoogleSetupModal()" class="px-4 py-2 bg-brand-500 hover:bg-brand-400 text-white rounded-xl text-xs font-semibold">
+                        Got it
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    <script>
+        feather.replace();
+
+        function closeGoogleSetupModal() {
+            document.getElementById('google-setup-modal').classList.add('hidden');
+        }
+
+        async function registerWithGoogle() {
+            try {
+                const res = await fetch('/auth/google/url');
+                const data = await res.json();
+                if (data.success && data.url) {
+                    window.location.href = data.url;
+                } else if (!data.configured) {
+                    document.getElementById('google-setup-modal').classList.remove('hidden');
+                    feather.replace();
+                } else {
+                    const errBox = document.getElementById('reg-error');
+                    errBox.textContent = data.message || "Failed to initiate Google sign up.";
+                    errBox.classList.remove('hidden');
+                }
+            } catch (err) {
+                const errBox = document.getElementById('reg-error');
+                errBox.textContent = "Failed to initiate Google sign up: " + err.message;
+                errBox.classList.remove('hidden');
+            }
+        }
+
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const errBox = document.getElementById('reg-error');
+            const btn = document.getElementById('reg-btn');
+            errBox.classList.add('hidden');
+            errBox.textContent = "";
+
+            const fullName = document.getElementById('reg-fullname').value.trim();
+            const username = document.getElementById('reg-username').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
+            const password = document.getElementById('reg-password').value;
+
+            if (!username || !email || !password) {
+                errBox.textContent = "Please fill in all required fields.";
+                errBox.classList.remove('hidden');
+                return;
+            }
+
+            if (password.length < 6) {
+                errBox.textContent = "Password must be at least 6 characters long.";
+                errBox.classList.remove('hidden');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = `<span class="inline-block animate-spin mr-2">◌</span> Creating account...`;
+
+            try {
+                const res = await fetch('/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        full_name: fullName || null,
+                        username: username,
+                        email: email,
+                        password: password
+                    })
+                });
+
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    // Registration successful: Redirect directly to login page
+                    window.location.href = "/login?registered=1";
+                } else {
+                    errBox.textContent = data.detail || data.message || "Registration failed.";
+                    errBox.classList.remove('hidden');
+                }
+            } catch (err) {
+                errBox.textContent = "Network error: " + err.message;
+                errBox.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = "<span>Create Account</span>";
+            }
+        });
+    </script>
+</body>
+</html>

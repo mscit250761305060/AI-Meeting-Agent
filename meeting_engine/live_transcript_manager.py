@@ -34,6 +34,12 @@ class LiveTranscriptManager:
 
         self.history.append(transcript)
 
+        try:
+            from app.services.meeting_service import MeetingService
+            MeetingService.process_transcript_chunk(transcript)
+        except Exception as e:
+            logger.warning("Could not forward transcript to MeetingService: %s", e)
+
         transcript_memory.add(
             speaker="UNKNOWN",
             text=transcript

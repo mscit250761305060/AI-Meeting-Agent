@@ -1,39 +1,27 @@
-from google import genai
-from dotenv import load_dotenv
-import os
+import logging
+from app.services.ai.ollama_service import ollama_service
+from config import get_model
 
-load_dotenv()
+logger = logging.getLogger(__name__)
 
 
-def clean_transcript(raw_text):
-
-    client = genai.Client(
-        api_key=os.getenv("GEMINI_API_KEY")
-    )
-
-    prompt = f"""
-You are a transcript correction AI.
+def clean_transcript(raw_text: str) -> str:
+    prompt = f"""You are a transcript correction AI.
 
 Fix speech-to-text mistakes.
 
 Rules:
-
 - Keep original meaning.
 - Correct software development terminology.
-- Employee pitch likely means Employee List.
-- Employment management system likely means Employee Management System.
-- Dashboard page, employee list page and employee form page are common software pages.
-- Remove garbage text.
+- Remove garbage text and stuttering.
 - Return only cleaned transcript.
 
 Transcript:
-
 {raw_text}
 """
-
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=prompt
-    )
-
-    return response.text.strip()
+    model_name = get_model("requirement")
+    try:
+        return ollama_service.generate(prompt=prompt, model=model_name).strip()
+    except Exception as e:
+        logger.warning(f"Transcript cleaning failed: {e}. Returning raw text.")
+        return raw_text.strip()

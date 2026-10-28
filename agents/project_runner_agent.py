@@ -122,6 +122,10 @@ def run_project(project_path):
     try:
         # Open log file for appending uvicorn outputs
         log_file = open(log_file_path, "a", encoding="utf-8")
+        popen_kwargs = {}
+        if sys.platform == "win32":
+            popen_kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP | getattr(subprocess, "DETACHED_PROCESS", 0)
+
         process = subprocess.Popen(
             [
                 sys.executable,
@@ -136,7 +140,8 @@ def run_project(project_path):
             cwd=project_path,
             stdout=log_file,
             stderr=log_file,
-            text=True
+            text=True,
+            **popen_kwargs
         )
         log_file.close()
     except Exception as e:

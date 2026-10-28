@@ -1,1 +1,1 @@
-Hello, my name is Alice. I want an employee management system. The system should have a dashboard, employee list, and employee form page. The features are adding employees, editing employees, and deleting employees.
+The team agreed to adopt OAuth2 with Google authentication. Sarah will implement the auth callback endpoint by Thursday.

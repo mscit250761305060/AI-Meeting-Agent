@@ -1,22 +1,131 @@
 {
-    "project_name": "Employee Management System",
-    "project_title": "Employee Management System",
-    "industry": "HR",
-    "features": [
-        "Adding employees",
-        "Editing employees",
-        "Deleting employees"
+    "project_name": "Custom Resource Management",
+    "project_slug": "custom_resource_management",
+    "purpose": "Track and manage custom business resources, statuses, and records.",
+    "industry": "General Business",
+    "entity_name": "Item",
+    "entity_plural": "items",
+    "fields": [
+        {
+            "name": "name",
+            "type": "string",
+            "label": "Item Name",
+            "required": true,
+            "default": null,
+            "options": null
+        },
+        {
+            "name": "category",
+            "type": "string",
+            "label": "Category",
+            "required": true,
+            "default": "General",
+            "options": null
+        },
+        {
+            "name": "status",
+            "type": "string",
+            "label": "Status",
+            "required": true,
+            "default": "Active",
+            "options": [
+                "Active",
+                "Pending",
+                "Archived"
+            ]
+        },
+        {
+            "name": "description",
+            "type": "text",
+            "label": "Description",
+            "required": false,
+            "default": null,
+            "options": null
+        }
     ],
     "pages": [
-        "dashboard",
-        "employee list",
-        "employee form page"
+        {
+            "title": "Dashboard",
+            "slug": "dashboard_page",
+            "type": "dashboard",
+            "description": "Operational metrics and item status overview."
+        },
+        {
+            "title": "Item List",
+            "slug": "item_list_page",
+            "type": "list",
+            "description": "Searchable directory of records."
+        },
+        {
+            "title": "Add Item",
+            "slug": "item_form_page",
+            "type": "form",
+            "description": "Create new item record."
+        }
     ],
-    "frontend": "HTML/CSS/JS",
-    "backend": "FastAPI",
-    "database": "SQLite",
+    "features": [
+        "Create new records",
+        "Search and filter records",
+        "Update record properties",
+        "Delete or archive records"
+    ],
     "user_roles": [
-        "Admin"
+        "Admin",
+        "User"
     ],
-    "page_updates": []
+    "backend_framework": "FastAPI",
+    "database_type": "SQLite",
+    "api_endpoints": [
+        {
+            "method": "GET",
+            "path": "/api/items",
+            "description": "List all items",
+            "request_body": null,
+            "response_model": null
+        },
+        {
+            "method": "GET",
+            "path": "/api/items/{id}",
+            "description": "Retrieve single Item by ID",
+            "request_body": null,
+            "response_model": null
+        },
+        {
+            "method": "POST",
+            "path": "/api/items",
+            "description": "Create a new Item",
+            "request_body": null,
+            "response_model": null
+        },
+        {
+            "method": "PUT",
+            "path": "/api/items/{id}",
+            "description": "Update existing Item record",
+            "request_body": null,
+            "response_model": null
+        },
+        {
+            "method": "DELETE",
+            "path": "/api/items/{id}",
+            "description": "Delete a Item record",
+            "request_body": null,
+            "response_model": null
+        },
+        {
+            "method": "GET",
+            "path": "/api/stats",
+            "description": "Aggregate metrics for dashboard widgets",
+            "request_body": null,
+            "response_model": null
+        }
+    ],
+    "unsupported_requirements": [],
+    "generation_notes": [
+        "Deterministic domain analysis identified category: General Business.",
+        "All boilerplate and data contracts synthesized rule-based."
+    ],
+    "metadata": {
+        "source": "transcript_analysis",
+        "detected_domain": "generic"
+    }
 }

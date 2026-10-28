@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  meeting-bot:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./audio_archive:/app/audio_archive
+      - ./data:/app/data
+    environment:
+      - PYTHONUNBUFFERED=1
+    # Needed for PulseAudio inside the container
+    cap_add:
+      - SYS_NICE
+      - SYS_RESOURCE

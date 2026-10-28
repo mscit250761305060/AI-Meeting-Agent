@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Meeting Agent - Next-Gen Automation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="/static/js/tailwind.min.js"></script>
+    <script src="/static/js/feather.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: { 400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7' },
+                        dark: { 950: '#030712', 900: '#0f172a', 800: '#1e293b', 700: '#334155' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #030712; color: #f8fafc; overflow-x: hidden; }
+        
+        .bg-mesh {
+            position: fixed; inset: 0; z-index: -2;
+            background-color: #030712;
+            overflow: hidden;
+        }
+        .bg-mesh::before, .bg-mesh::after {
+            content: '';
+            position: absolute;
+            width: 800px; height: 800px;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.2;
+            animation: float 20s infinite ease-in-out alternate;
+        }
+        .bg-mesh::before { background: #38bdf8; top: -200px; left: -200px; }
+        .bg-mesh::after { background: #818cf8; bottom: -200px; right: -200px; animation-delay: -10s; }
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(100px, 100px) scale(1.2); }
+        }
+
+        .glass-nav {
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .hero-title {
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .hero-title-accent {
+            background: linear-gradient(to right, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .feature-card {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.4), rgba(15, 23, 42, 0.6));
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(56, 189, 248, 0.3);
+            box-shadow: 0 10px 30px -10px rgba(56, 189, 248, 0.2);
+        }
+    </style>
+</head>
+<body class="font-sans antialiased min-h-screen flex flex-col">
+    <div class="bg-mesh"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 glass-nav">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-blue-600 flex items-center justify-center shadow-lg">
+                    <i data-feather="cpu" class="text-white w-5 h-5"></i>
+                </div>
+                <span class="text-lg font-bold tracking-tight text-white">AI Meeting Agent</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="/login" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Log in</a>
+                <a href="/register" class="text-sm font-medium bg-brand-500 hover:bg-brand-400 text-white px-5 py-2.5 rounded-lg transition-all shadow-lg shadow-brand-500/20">Sign up</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <main class="flex-1 flex flex-col justify-center items-center px-6 pt-32 pb-20 mt-10">
+        <div class="max-w-4xl mx-auto text-center">
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-400 text-xs font-semibold uppercase tracking-wider mb-8">
+                <span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>
+                Now With E2E Auto-Healing
+            </div>
+            
+            <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight hero-title mb-6 leading-tight">
+                Turn your meetings into <br/> <span class="hero-title-accent">Full-Stack Projects</span>
+            </h1>
+            
+            <p class="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+                The AI Meeting Agent listens to your calls, extracts requirements, plans architecture, generates frontend and backend code, and deploys it live — completely autonomously.
+            </p>
+            
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <a href="/register" class="w-full sm:w-auto bg-brand-500 hover:bg-brand-400 text-white font-bold text-lg px-8 py-4 rounded-xl transition-all shadow-xl shadow-brand-500/20 flex items-center justify-center gap-2">
+                    Get Started Free <i data-feather="arrow-right" class="w-5 h-5"></i>
+                </a>
+                <a href="/dashboard" class="w-full sm:w-auto bg-dark-800 hover:bg-dark-700 text-white font-medium text-lg px-8 py-4 rounded-xl transition-all border border-dark-700 flex items-center justify-center gap-2">
+                    <i data-feather="play-circle" class="w-5 h-5"></i> Go to Dashboard
+                </a>
+            </div>
+        </div>
+        
+        <!-- Dashboard Mockup Image / Illustration -->
+        <div class="w-full max-w-5xl mt-20 relative" style="perspective: 1000px;">
+            <div class="absolute inset-0 bg-gradient-to-t from-[#030712] via-transparent to-transparent z-10"></div>
+            <div class="rounded-xl overflow-hidden border border-white/10 shadow-2xl relative">
+                <div class="h-12 bg-dark-900 border-b border-white/10 flex items-center px-4 gap-2">
+                    <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                    <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                    <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                </div>
+                <div class="bg-dark-950 p-10 h-[400px] flex items-center justify-center">
+                    <div class="text-center">
+                        <i data-feather="layout" class="w-16 h-16 text-brand-500/50 mx-auto mb-4"></i>
+                        <h3 class="text-2xl font-bold text-white mb-2">Automated Dashboard Generation</h3>
+                        <p class="text-gray-500">From audio to live React UI in minutes.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Features Section -->
+    <section id="features" class="max-w-7xl mx-auto px-6 py-24">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Everything you need to ship faster</h2>
+            <p class="text-gray-400 max-w-2xl mx-auto">Stop writing boilerplate. Let the AI handle the heavy lifting while you focus on business logic.</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="feature-card p-8 rounded-2xl">
+                <div class="w-12 h-12 bg-brand-500/10 rounded-xl flex items-center justify-center mb-6">
+                    <i data-feather="mic" class="text-brand-400 w-6 h-6"></i>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-3">Live Transcription</h3>
+                <p class="text-gray-400 leading-relaxed">Captures every word in real-time, pulling precise functional requirements and user roles instantly.</p>
+            </div>
+            
+            <div class="feature-card p-8 rounded-2xl">
+                <div class="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center mb-6">
+                    <i data-feather="code" class="text-emerald-400 w-6 h-6"></i>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-3">Full-Stack Gen</h3>
+                <p class="text-gray-400 leading-relaxed">Automatically writes backend FastAPI code, seeds SQL databases, and scaffolds Vite+React UI pages.</p>
+            </div>
+            
+            <div class="feature-card p-8 rounded-2xl">
+                <div class="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center mb-6">
+                    <i data-feather="shield" class="text-purple-400 w-6 h-6"></i>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-3">E2E Auto-Repair</h3>
+                <p class="text-gray-400 leading-relaxed">Runs headless Playwright browsers to click through your app, catch 404s, and fix TypeScript errors on the fly.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/5 py-12 mt-auto">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-2">
+                <i data-feather="cpu" class="text-gray-500 w-4 h-4"></i>
+                <span class="text-gray-500 text-sm">© 2026 AI Meeting Agent. All rights reserved.</span>
+            </div>
+            <div class="flex gap-6">
+                <a href="#" class="text-sm text-gray-500 hover:text-gray-300">Privacy</a>
+                <a href="#" class="text-sm text-gray-500 hover:text-gray-300">Terms</a>
+                <a href="#" class="text-sm text-gray-500 hover:text-gray-300">Contact</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        feather.replace();
+    </script>
+</body>
+</html>

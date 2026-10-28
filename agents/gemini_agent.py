@@ -1,20 +1,10 @@
-import os
+import logging
+from app.services.ai.ollama_service import ask_ollama
 
-from dotenv import load_dotenv
-from google import genai
+logger = logging.getLogger(__name__)
 
-load_dotenv()
-
-client = genai.Client(
-    api_key=os.getenv("GEMINI_API_KEY")
-)
-
-
-def ask_gemini(prompt):
-
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=prompt
-    )
-
-    return response.text
+def ask_gemini(prompt: str) -> str:
+    """
+    Backwards-compatible wrapper now routed 100% to local Ollama.
+    """
+    return ask_ollama(prompt)

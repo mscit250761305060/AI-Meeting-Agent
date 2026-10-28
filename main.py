@@ -1,7 +1,14 @@
-from agents.master_ai_agent import (
-    start_master_ai
-)
+"""
+main.py — Root ASGI entry point for AI Meeting Agent
+
+Forwards to app.main:app, allowing uvicorn to be run as:
+    python -m uvicorn main:app --reload
+or:
+    python -m uvicorn app.main:app --reload
+"""
+
+from app.main import app
 
 if __name__ == "__main__":
-
-    start_master_ai()
+    import uvicorn
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)

@@ -1,0 +1,30 @@
+# Generated projects (created at runtime, excluded from version control)
+generated_projects/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+*.egg-info/
+
+# Environment
+.env
+
+# Data
+data/
+*.db
+*.sqlite
+*.sqlite3
+# Logs
+*.log
+preview_server.log
+
+# Dependencies
+node_modules/
+
+# Test artifacts & cache
+.pytest_cache/
+test_runner.db*
+archive/
+

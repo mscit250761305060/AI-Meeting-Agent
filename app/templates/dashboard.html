@@ -1,0 +1,1588 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Meeting Agent | Studio</title>
+    <meta name="description" content="AI Meeting Agent — Autonomous meeting join, live discussion capture, and automated project synthesis.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    },
+                    colors: {
+                        brand: { 400: '#a78bfa', 500: '#8b5cf6', 600: '#7c3aed', 700: '#6d28d9' },
+                        accent: { 400: '#38bdf8', 500: '#0ea5e9', 600: '#0284c7' },
+                        dark: { 950: '#030712', 900: '#0b1329', 850: '#111c38', 800: '#1a2744', 700: '#2d3b5e' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #030712; color: #f8fafc; font-family: 'Outfit', sans-serif; }
+        .glass-card { background: rgba(17, 28, 56, 0.65); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
+        .glass-input { background: rgba(3, 7, 18, 0.7); border: 1px solid rgba(255, 255, 255, 0.12); color: #fff; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+        .glass-input:focus { border-color: #8b5cf6; box-shadow: 0 0 20px rgba(139, 92, 246, 0.3); outline: none; }
+        .btn-gradient { background: linear-gradient(135deg, #7c3aed 0%, #0284c7 100%); transition: all 0.25s ease; }
+        .btn-gradient:hover:not(:disabled) { background: linear-gradient(135deg, #8b5cf6 0%, #0ea5e9 100%); box-shadow: 0 0 25px rgba(124, 58, 237, 0.45); transform: translateY(-1px); }
+        .btn-gradient:active:not(:disabled) { transform: translateY(0); }
+        .btn-danger { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); transition: all 0.25s ease; }
+        .btn-danger:hover:not(:disabled) { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); box-shadow: 0 0 25px rgba(220, 38, 38, 0.45); }
+        .scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: 999px; }
+        .scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(139, 92, 246, 0.5); }
+        .status-dot { width: 10px; height: 10px; border-radius: 999px; }
+        .status-dot.idle { background-color: #64748b; }
+        .status-dot.active { background-color: #10b981; box-shadow: 0 0 12px #10b981; animation: pulse 2s infinite; }
+        .status-dot.connecting { background-color: #0ea5e9; box-shadow: 0 0 12px #0ea5e9; animation: pulse 1.5s infinite; }
+        .status-dot.waiting { background-color: #f59e0b; box-shadow: 0 0 12px #f59e0b; animation: pulse 1.5s infinite; }
+        .status-dot.failed { background-color: #ef4444; box-shadow: 0 0 12px #ef4444; }
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.15); } }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white">
+
+    <!-- Header Navigation -->
+    <header class="border-b border-white/10 bg-dark-900/70 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+            <!-- Brand -->
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-accent-500 flex items-center justify-center shadow-lg shadow-brand-500/25">
+                    <i data-lucide="bot" class="w-5 h-5 text-white"></i>
+                </div>
+                <div>
+                    <span class="font-bold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">AI Meeting Agent</span>
+                    <span class="ml-2 text-[11px] font-mono px-2 py-0.5 rounded-full bg-white/10 text-brand-400 border border-white/5">v2.0</span>
+                </div>
+            </div>
+
+            <!-- Tabs Navigation -->
+            <div class="flex items-center gap-2 bg-dark-950/80 p-1.5 rounded-xl border border-white/10">
+                <button id="nav-meeting" onclick="showView('meeting')" class="flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all bg-brand-600 text-white shadow-md shadow-brand-600/30">
+                    <i data-lucide="video" class="w-4 h-4"></i>
+                    <span>Join Meeting</span>
+                </button>
+                <button id="nav-history" onclick="showView('history')" class="flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-white/5">
+                    <i data-lucide="file-text" class="w-4 h-4"></i>
+                    <span>AI Notes & History</span>
+                </button>
+                <button id="nav-projects" onclick="showView('projects')" class="flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-white/5">
+                    <i data-lucide="folder-git-2" class="w-4 h-4"></i>
+                    <span>Projects</span>
+                    <span id="projects-badge" class="ml-1 text-[11px] font-mono px-1.5 py-0.2 rounded-full bg-white/10 text-slate-300">0</span>
+                </button>
+            </div>
+
+            <!-- Right Controls: Google OAuth, User Profile, Live Session Pill -->
+            <div class="flex items-center gap-3">
+                <div id="google-conn-wrapper" class="flex items-center"></div>
+                <div id="user-profile-wrapper" class="flex items-center"></div>
+                <div class="flex items-center gap-2 pl-2 border-l border-white/10">
+                    <div id="live-indicator-dot" class="status-dot idle"></div>
+                    <span id="live-status-pill" class="text-xs font-mono uppercase tracking-wider text-slate-400">Idle</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-6xl w-full mx-auto p-6 flex flex-col justify-center">
+
+        <!-- ======================================================== -->
+        <!-- VIEW 1: MAIN SCREEN (MEETING LINK & JOIN) -->
+        <!-- ======================================================== -->
+        <section id="view-meeting" class="w-full max-w-2xl mx-auto my-auto py-8">
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-400 text-xs font-medium mb-3">
+                    <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                    <span>Meeting-to-Project Automated Synthesis</span>
+                </div>
+                <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">Connect Your Meeting</h1>
+                <p class="text-slate-400 mt-2 text-sm max-w-md mx-auto">
+                    Paste a Google Meet, Zoom, or Microsoft Teams URL. The agent will join, capture requirements, and build your project.
+                </p>
+            </div>
+
+            <!-- Center Link Input Card -->
+            <div class="glass-card rounded-2xl p-6 md:p-8 space-y-6">
+                <!-- Input Box -->
+                <div class="space-y-2">
+                    <label for="meeting-link-input" class="text-xs font-semibold tracking-wider uppercase text-slate-300 flex items-center gap-2">
+                        <i data-lucide="link" class="w-3.5 h-3.5 text-brand-400"></i>
+                        <span>Meeting Link</span>
+                    </label>
+                    <div class="relative">
+                        <input
+                            type="url"
+                            id="meeting-link-input"
+                            placeholder="https://meet.google.com/abc-defg-hij or https://zoom.us/j/..."
+                            class="glass-input w-full px-4 py-3.5 pl-11 rounded-xl text-sm font-mono placeholder:text-slate-500"
+                            autocomplete="off"
+                            spellcheck="false"
+                            onkeydown="if(event.key==='Enter') handleJoinMeeting()"
+                        />
+                        <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
+                            <i data-lucide="globe" class="w-4 h-4"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <div>
+                    <button
+                        id="btn-join"
+                        onclick="handleJoinMeeting()"
+                        class="btn-gradient w-full py-3.5 rounded-xl text-white font-semibold flex items-center justify-center gap-2 shadow-lg shadow-brand-500/20 text-sm tracking-wide"
+                    >
+                        <i data-lucide="play" class="w-4 h-4"></i>
+                        <span>Join Meeting</span>
+                    </button>
+                </div>
+
+                <!-- Session reuse information pill & CDP automation helper -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-400 bg-white/5 px-4 py-2.5 rounded-xl border border-white/5">
+                    <span class="flex items-center gap-1.5 text-slate-300">
+                        <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>
+                        <span>Reuses this Chrome window & your active Google login (no blank profiles)</span>
+                    </span>
+                    <button
+                        type="button"
+                        onclick="handleLaunchCdpBrowser()"
+                        title="Launches Chrome with remote debugging on port 9222 for 100% hands-free Playwright automation"
+                        class="text-[11px] text-brand-400 hover:text-brand-300 flex items-center gap-1 underline underline-offset-2 transition-colors cursor-pointer self-start sm:self-auto"
+                    >
+                        <i data-lucide="sparkles" class="w-3 h-3"></i>
+                        <span>Launch Automation-Ready Chrome</span>
+                    </button>
+                </div>
+
+                <!-- Platform Icons Hint -->
+                <div class="flex items-center justify-center gap-6 pt-2 text-slate-500 text-xs font-mono border-t border-white/5">
+                    <span class="flex items-center gap-1.5"><i data-lucide="video" class="w-3.5 h-3.5 text-emerald-400"></i> Google Meet</span>
+                    <span class="flex items-center gap-1.5"><i data-lucide="video" class="w-3.5 h-3.5 text-blue-400"></i> Zoom</span>
+                    <span class="flex items-center gap-1.5"><i data-lucide="video" class="w-3.5 h-3.5 text-indigo-400"></i> MS Teams</span>
+                </div>
+            </div>
+
+            <!-- Live Status & In-Call Control Card (Hidden by default, shown when meeting active/connecting) -->
+            <div id="meeting-live-panel" class="hidden glass-card rounded-2xl p-6 mt-6 border-brand-500/30 space-y-5">
+                <div class="flex items-center justify-between border-b border-white/10 pb-4">
+                    <div class="flex items-center gap-3">
+                        <div id="card-status-dot" class="status-dot connecting"></div>
+                        <div>
+                            <h3 id="card-status-title" class="text-sm font-bold text-white">Connecting to Meeting...</h3>
+                            <p id="card-status-subtitle" class="text-xs text-slate-400">Browser automation initiated</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span id="card-mode-badge" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-brand-500/20 text-brand-300 uppercase tracking-wider border border-brand-500/30">SAME-WINDOW TAB</span>
+                        <span id="card-platform-badge" class="text-xs font-mono px-2.5 py-1 rounded-full bg-white/10 text-brand-300 uppercase tracking-wider">DETECTING</span>
+                    </div>
+                </div>
+
+                <!-- Message Box -->
+                <div id="card-status-message" class="text-xs font-mono p-3 rounded-lg bg-black/40 border border-white/5 text-slate-300 break-words">
+                    Agent is initializing Chromium browser session...
+                </div>
+
+                <!-- Live Discussion / Transcript Box -->
+                <div id="card-transcript-container" class="space-y-1.5 pt-1">
+                    <div class="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                        <span class="flex items-center gap-1.5">
+                            <i data-lucide="mic" class="w-3.5 h-3.5 text-brand-400"></i>
+                            <span>Live Meeting Transcript</span>
+                        </span>
+                        <span id="transcript-live-badge" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">CAPTURING</span>
+                    </div>
+                    <div id="card-transcript-text" class="text-xs font-sans p-3.5 rounded-xl bg-black/50 border border-white/5 text-slate-200 max-h-36 overflow-y-auto scrollbar break-words leading-relaxed select-text">
+                        <span class="text-slate-500 italic">Waiting for meeting speech... Audio loopback active.</span>
+                    </div>
+                </div>
+
+                <!-- In-Call Actions -->
+                <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+                    <div class="flex items-center gap-2">
+                        <button
+                            id="btn-reopen-tab"
+                            onclick="handleReopenTab()"
+                            class="px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 bg-white/10 hover:bg-white/15 text-slate-300 transition-colors"
+                        >
+                            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                            <span>Re-open Meeting Tab</span>
+                        </button>
+                        <button
+                            id="btn-confirm-call"
+                            onclick="handleConfirmJoined()"
+                            class="px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white shadow-md transition-colors"
+                        >
+                            <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                            <span>I'm In Call (Active)</span>
+                        </button>
+                    </div>
+                    <button
+                        id="btn-stop"
+                        onclick="handleStopMeeting()"
+                        class="btn-danger px-5 py-2.5 rounded-xl text-white font-medium text-xs flex items-center gap-2 shadow-lg shadow-red-500/20"
+                    >
+                        <i data-lucide="square" class="w-3.5 h-3.5 fill-current"></i>
+                        <span>Stop & Finalize Project</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Finalized Project Banner (Shows upon meeting stop with final project details) -->
+            <div id="finalized-project-banner" class="hidden glass-card rounded-2xl p-6 mt-6 border-emerald-500/30 bg-emerald-950/20 space-y-4">
+                <div class="flex items-center gap-3 text-emerald-400 font-semibold text-sm">
+                    <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-400"></i>
+                    <span>Meeting Completed & Project Finalized!</span>
+                </div>
+
+                <div class="space-y-1">
+                    <h2 id="final-project-title" class="text-lg font-bold text-white">Application Name</h2>
+                    <p id="final-project-path" class="text-xs font-mono text-slate-400">generated_projects/example_app</p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-3 pt-2">
+                    <button id="final-btn-open" onclick="openProjectPreview()" class="btn-gradient px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 text-white">
+                        <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                        <span>Open Project Preview</span>
+                    </button>
+                    <button id="final-btn-download" onclick="downloadFinalProjectZip()" class="px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 bg-white/10 hover:bg-white/15 text-white border border-white/10 transition-colors">
+                        <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                        <span>Download ZIP</span>
+                    </button>
+                    <button onclick="showView('projects')" class="px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors">
+                        <span>View in Projects Dashboard &rarr;</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- VIEW 2: GENERATED PROJECTS DASHBOARD -->
+        <!-- ======================================================== -->
+        <section id="view-projects" class="hidden w-full flex-1 flex flex-col gap-6">
+            <!-- Header bar -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+                <div>
+                    <h1 class="text-2xl font-bold text-white tracking-tight">Generated Projects</h1>
+                    <p class="text-xs text-slate-400 mt-1">Browse projects created from meetings, explore code files, and download archives.</p>
+                </div>
+                <button onclick="loadProjectsList()" class="self-start sm:self-auto px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-medium text-slate-300 border border-white/10 flex items-center gap-1.5 transition-colors">
+                    <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
+                    <span>Refresh</span>
+                </button>
+            </div>
+
+            <!-- Two-Column Layout -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 min-h-[480px]">
+
+                <!-- Left Column: Projects List -->
+                <div class="lg:col-span-4 glass-card rounded-2xl p-4 flex flex-col">
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-400 px-2 pb-3 border-b border-white/5 flex items-center justify-between">
+                        <span>All Projects</span>
+                        <span id="projects-total-count" class="font-mono text-slate-500">0</span>
+                    </div>
+
+                    <!-- Scrollable Projects List -->
+                    <div id="projects-list-container" class="flex-1 overflow-y-auto scrollbar space-y-2 pt-3 pr-1">
+                        <div class="p-6 text-center text-xs text-slate-500 font-mono">
+                            Loading projects...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Selected Project Detail & Files Tree -->
+                <div class="lg:col-span-8 glass-card rounded-2xl p-6 flex flex-col justify-between">
+                    <div id="selected-project-content" class="space-y-6 flex-1 flex flex-col">
+                        <!-- Project Header & Actions -->
+                        <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 border-b border-white/10 pb-5">
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <h2 id="proj-detail-title" class="text-xl font-bold text-white tracking-tight">Select a Project</h2>
+                                    <span id="proj-detail-status" class="hidden text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">READY</span>
+                                </div>
+                                <p id="proj-detail-path" class="text-xs font-mono text-slate-400">Choose a project from the left list to inspect files</p>
+                            </div>
+
+                            <!-- Project Action Buttons -->
+                            <div class="flex items-center gap-2 flex-shrink-0">
+                                <button
+                                    id="btn-open-project"
+                                    onclick="openSelectedProjectPreview()"
+                                    disabled
+                                    class="btn-gradient px-4 py-2 rounded-xl text-xs font-semibold text-white flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed shadow-md shadow-brand-500/20"
+                                >
+                                    <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                                    <span>Open Project</span>
+                                </button>
+                                <button
+                                    id="btn-download-project"
+                                    onclick="downloadSelectedProjectZip()"
+                                    disabled
+                                    class="px-4 py-2 rounded-xl text-xs font-semibold bg-white/10 hover:bg-white/15 text-white border border-white/10 flex items-center gap-1.5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                                >
+                                    <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                                    <span>Download ZIP</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Files & Folders Section -->
+                        <div class="flex-1 flex flex-col min-h-[300px]">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                                    <i data-lucide="folder-tree" class="w-3.5 h-3.5 text-accent-400"></i>
+                                    <span>Project Files & Structure</span>
+                                </span>
+                                <span id="files-count-badge" class="text-[11px] font-mono text-slate-500">0 files</span>
+                            </div>
+
+                            <!-- Files Tree Container -->
+                            <div id="files-tree-container" class="flex-1 p-3.5 rounded-xl bg-black/40 border border-white/5 overflow-y-auto scrollbar font-mono text-xs text-slate-300">
+                                <div class="p-6 text-center text-slate-500">
+                                    Select a project to explore file hierarchy
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ======================================================== -->
+        <!-- VIEW 3: MEETING HISTORY & AI SUMMARIES -->
+        <!-- ======================================================== -->
+        <section id="view-history" class="hidden w-full flex-1 flex flex-col gap-6">
+            <!-- Header Bar -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+                        <i data-lucide="file-text" class="w-5 h-5 text-brand-400"></i>
+                        <span>Meeting History & AI Notes</span>
+                    </h2>
+                    <p class="text-slate-400 text-xs mt-1">Review executive overviews, key decisions, and action items captured during calls.</p>
+                </div>
+                <button onclick="loadMeetingHistory()" class="px-3.5 py-1.5 rounded-xl text-xs font-medium bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 flex items-center gap-1.5 transition-colors">
+                    <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                    <span>Refresh</span>
+                </button>
+            </div>
+
+            <!-- Two-Pane Layout: Meetings List & Summary Viewer -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 min-h-0">
+                <!-- Left Pane: Meeting Sessions List (4 cols) -->
+                <div class="lg:col-span-5 glass-card rounded-2xl p-4 flex flex-col overflow-hidden">
+                    <div class="flex items-center justify-between mb-3 pb-2 border-b border-white/10">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-300">Recorded Sessions</span>
+                        <span id="history-count-badge" class="text-xs font-mono px-2 py-0.5 rounded-full bg-white/10 text-brand-300">0 sessions</span>
+                    </div>
+                    <div id="history-list-container" class="flex-1 space-y-2 overflow-y-auto scrollbar pr-1">
+                        <div class="p-8 text-center text-slate-500 text-xs">Loading meeting history...</div>
+                    </div>
+                </div>
+
+                <!-- Right Pane: Summary & Action Items Detail (7 cols) -->
+                <div class="lg:col-span-7 glass-card rounded-2xl p-6 flex flex-col overflow-hidden">
+                    <div id="summary-empty-state" class="my-auto text-center p-8 space-y-3">
+                        <div class="w-12 h-12 rounded-xl bg-brand-500/10 border border-brand-500/20 text-brand-400 flex items-center justify-center mx-auto">
+                            <i data-lucide="file-text" class="w-6 h-6"></i>
+                        </div>
+                        <h4 class="text-sm font-semibold text-white">No Meeting Selected</h4>
+                        <p class="text-slate-400 text-xs max-w-sm mx-auto">Select a meeting from the list to view its AI summary, key decisions, and action items.</p>
+                    </div>
+
+                    <div id="summary-content-state" class="hidden flex-1 flex flex-col space-y-5 overflow-y-auto scrollbar pr-1">
+                        <!-- Top Session Header -->
+                        <div class="flex items-start justify-between border-b border-white/10 pb-4">
+                            <div>
+                                <h3 id="summary-session-id" class="text-sm font-bold text-white font-mono">Session ID</h3>
+                                <p id="summary-session-date" class="text-xs text-slate-400 mt-0.5">Recorded on...</p>
+                            </div>
+                            <button id="btn-re-summarize" onclick="triggerSessionSummarize()" class="btn-gradient px-3 py-1.5 rounded-xl text-xs font-medium text-white flex items-center gap-1.5 shadow-md shadow-brand-500/20">
+                                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                                <span>Re-Generate Summary</span>
+                            </button>
+                        </div>
+
+                        <!-- Executive Overview Box -->
+                        <div class="space-y-1.5">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                                <i data-lucide="align-left" class="w-3.5 h-3.5 text-accent-400"></i>
+                                <span>Executive Overview</span>
+                            </h4>
+                            <div id="summary-overview-text" class="p-3.5 rounded-xl bg-black/40 border border-white/5 text-xs text-slate-200 leading-relaxed font-sans"></div>
+                        </div>
+
+                        <!-- Key Discussion Points -->
+                        <div class="space-y-1.5">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                                <i data-lucide="list" class="w-3.5 h-3.5 text-brand-400"></i>
+                                <span>Key Discussion Points</span>
+                            </h4>
+                            <ul id="summary-keypoints-list" class="space-y-1.5 text-xs text-slate-300 pl-2"></ul>
+                        </div>
+
+                        <!-- Decisions Made -->
+                        <div class="space-y-1.5">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                                <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400"></i>
+                                <span>Decisions Reached</span>
+                            </h4>
+                            <ul id="summary-decisions-list" class="space-y-1.5 text-xs text-slate-300 pl-2"></ul>
+                        </div>
+
+                        <!-- Action Items -->
+                        <div class="space-y-1.5">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                                <i data-lucide="check-square" class="w-3.5 h-3.5 text-blue-400"></i>
+                                <span>Action Items</span>
+                            </h4>
+                            <div id="summary-actions-container" class="space-y-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Google OAuth Setup Modal -->
+    <div id="google-setup-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+        <div class="glass-card max-w-lg w-full rounded-2xl p-6 border border-white/10 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                <div class="flex items-center gap-2 text-brand-400 font-semibold text-sm">
+                    <i data-lucide="settings" class="w-4 h-4"></i>
+                    <span>Google OAuth Setup Required</span>
+                </div>
+                <button onclick="closeGoogleSetupModal()" class="text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            
+            <p class="text-xs text-slate-300 leading-relaxed">
+                Direct Google OAuth 2.0 connection allows the agent to synchronize your calendar and use your Google profile. To enable this, configure Google Cloud credentials in your <code class="text-brand-300">.env</code> file.
+            </p>
+
+            <div class="space-y-2 text-xs text-slate-300 bg-black/40 p-4 rounded-xl border border-white/5 font-mono">
+                <div class="text-white font-semibold text-[11px] mb-1 uppercase tracking-wider">Step-by-Step Instructions:</div>
+                <p>1. Open <a href="https://console.cloud.google.com/apis/credentials" target="_blank" class="text-brand-400 hover:underline">Google Cloud Console &rarr; Credentials</a>.</p>
+                <p>2. Create OAuth Client ID (Application type: <b>Web application</b>).</p>
+                <p>3. Set Authorized redirect URI to:</p>
+                <div class="flex items-center justify-between p-2 bg-dark-900 rounded border border-white/10 text-brand-300 text-[11px] select-all">
+                    <span id="google-setup-redirect-uri">http://localhost:8000/auth/google/callback</span>
+                    <button onclick="copyRedirectUri()" class="text-slate-400 hover:text-white text-[10px] uppercase font-sans font-bold px-1.5 py-0.5 rounded bg-white/5">Copy</button>
+                </div>
+                <p>4. Add into your <code class="text-white">.env</code> file:</p>
+                <pre class="text-[11px] text-slate-300 bg-dark-900 p-2 rounded">GOOGLE_CLIENT_ID=your_client_id_here
+GOOGLE_CLIENT_SECRET=your_client_secret_here</pre>
+                <p>5. Restart the server.</p>
+            </div>
+
+            <!-- Alternative: Launch browser directly -->
+            <div class="p-3.5 rounded-xl bg-brand-500/10 border border-brand-500/20 space-y-2">
+                <div class="flex items-center gap-1.5 text-brand-300 font-semibold text-xs">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-brand-400"></i>
+                    <span>No OAuth Keys? Sign In Directly</span>
+                </div>
+                <p class="text-[11px] text-slate-400 leading-relaxed">
+                    You can also sign into Google directly inside your user-isolated Chromium session.
+                </p>
+                <button onclick="handleLaunchAuthBrowser()" id="btn-launch-auth-browser" class="w-full btn-gradient py-2 rounded-xl text-xs font-semibold text-white flex items-center justify-center gap-2">
+                    <i data-lucide="chrome" class="w-3.5 h-3.5"></i>
+                    <span>Open Browser to Sign In</span>
+                </button>
+            </div>
+
+            <div class="flex justify-end pt-2">
+                <button onclick="closeGoogleSetupModal()" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-slate-300 text-xs font-semibold">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2.5 pointer-events-none max-w-sm w-full"></div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirm-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+        <div class="glass-card max-w-md w-full rounded-2xl p-6 border border-white/10 space-y-4">
+            <div class="flex items-center gap-3 text-amber-400 font-semibold text-sm">
+                <i data-lucide="alert-triangle" class="w-5 h-5 flex-shrink-0"></i>
+                <span id="confirm-modal-title">Confirm Action</span>
+            </div>
+            <p id="confirm-modal-message" class="text-xs text-slate-300 leading-relaxed"></p>
+            <div class="flex justify-end gap-3 pt-2">
+                <button id="confirm-modal-cancel" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">
+                    Cancel
+                </button>
+                <button id="confirm-modal-action" class="btn-danger px-4 py-2 rounded-xl text-xs font-semibold text-white shadow-md">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/5 py-4 text-center text-xs text-slate-500 font-mono">
+        AI Meeting Agent &bull; Autonomous Architecture &bull; Local & Clean
+    </footer>
+
+    <!-- Client-Side Application Logic -->
+    <script>
+        // ========================================================
+        // Application State
+        // ========================================================
+        var activeView = 'meeting';
+        var currentMeetingRunning = false;
+        var activeSessionId = null;
+        var activeProjectId = null;
+        var selectedProjectId = null;
+        var lastFinalizedUrl = null;
+        var lastFinalizedId = null;
+        var pollTimer = null;
+        var ws = null;
+        var wsReconnectTimer = null;
+
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // ========================================================
+        // UI Helpers: Toast Notifications & Confirmation Modals
+        // ========================================================
+        function showToast(message, type) {
+            type = type || 'info';
+            var container = document.getElementById('toast-container');
+            if (!container) return;
+
+            var toast = document.createElement('div');
+            toast.className = 'pointer-events-auto flex items-center gap-3 p-3.5 rounded-xl shadow-xl border text-xs font-medium transition-all transform translate-y-2 opacity-0 duration-300 backdrop-blur-md';
+
+            var iconName = 'info';
+            if (type === 'success') {
+                toast.className += ' bg-slate-900/95 border-emerald-500/40 text-emerald-300 shadow-emerald-500/10';
+                iconName = 'check-circle-2';
+            } else if (type === 'error') {
+                toast.className += ' bg-slate-900/95 border-red-500/40 text-red-300 shadow-red-500/10';
+                iconName = 'alert-circle';
+            } else if (type === 'warning') {
+                toast.className += ' bg-slate-900/95 border-amber-500/40 text-amber-300 shadow-amber-500/10';
+                iconName = 'alert-triangle';
+            } else {
+                toast.className += ' bg-slate-900/95 border-brand-500/40 text-brand-300 shadow-brand-500/10';
+                iconName = 'info';
+            }
+
+            toast.innerHTML = `
+                <i data-lucide="${iconName}" class="w-4 h-4 flex-shrink-0"></i>
+                <span class="flex-1 leading-snug">${message}</span>
+                <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-white ml-2 p-1">
+                    <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                </button>
+            `;
+
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            requestAnimationFrame(function() {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            });
+
+            setTimeout(function() {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(function() {
+                    if (toast.parentElement) toast.parentElement.removeChild(toast);
+                }, 300);
+            }, 4500);
+        }
+
+        function showConfirmModal(title, message, confirmBtnText, onConfirm) {
+            var modal = document.getElementById('confirm-modal');
+            var titleEl = document.getElementById('confirm-modal-title');
+            var msgEl = document.getElementById('confirm-modal-message');
+            var cancelBtn = document.getElementById('confirm-modal-cancel');
+            var actionBtn = document.getElementById('confirm-modal-action');
+
+            titleEl.textContent = title || 'Confirm Action';
+            msgEl.textContent = message || 'Are you sure you want to proceed?';
+            actionBtn.textContent = confirmBtnText || 'Confirm';
+
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+
+            function cleanup() {
+                modal.classList.add('hidden');
+                cancelBtn.onclick = null;
+                actionBtn.onclick = null;
+            }
+
+            cancelBtn.onclick = cleanup;
+            actionBtn.onclick = function() {
+                cleanup();
+                if (typeof onConfirm === 'function') onConfirm();
+            };
+        }
+
+        // ========================================================
+        // 1. Navigation & View Switching
+        // ========================================================
+        function showView(viewName) {
+            activeView = viewName;
+
+            var vMeeting = document.getElementById('view-meeting');
+            var vHistory = document.getElementById('view-history');
+            var vProjects = document.getElementById('view-projects');
+
+            var btnMeeting = document.getElementById('nav-meeting');
+            var btnHistory = document.getElementById('nav-history');
+            var btnProjects = document.getElementById('nav-projects');
+
+            var activeClass = 'flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all bg-brand-600 text-white shadow-md shadow-brand-600/30';
+            var inactiveClass = 'flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white hover:bg-white/5';
+
+            vMeeting.classList.add('hidden');
+            vHistory.classList.add('hidden');
+            vProjects.classList.add('hidden');
+
+            btnMeeting.className = inactiveClass;
+            btnHistory.className = inactiveClass;
+            btnProjects.className = inactiveClass;
+
+            if (viewName === 'meeting') {
+                vMeeting.classList.remove('hidden');
+                btnMeeting.className = activeClass;
+            } else if (viewName === 'history') {
+                vHistory.classList.remove('hidden');
+                btnHistory.className = activeClass;
+                loadMeetingHistory();
+            } else if (viewName === 'projects') {
+                vProjects.classList.remove('hidden');
+                btnProjects.className = activeClass;
+                loadProjectsList();
+            }
+            lucide.createIcons();
+        }
+
+        // ========================================================
+        // 2. Meeting Join Flow (POST /meeting/join)
+        // ========================================================
+        var activeMeetingTab = null;
+        var lastMeetingUrl = '';
+
+        async function handleJoinMeeting() {
+            var linkInput = document.getElementById('meeting-link-input');
+            var link = (linkInput.value || '').trim();
+
+            if (!link) {
+                showToast('Please enter or paste a valid meeting link (Google Meet, Zoom, or Teams).', 'warning');
+                linkInput.focus();
+                return;
+            }
+
+            // Normalize link with https protocol to avoid opening localhost relative URLs
+            if (!/^https?:\/\//i.test(link)) {
+                link = 'https://' + link;
+            }
+
+            lastMeetingUrl = link;
+
+            // Direct user-gesture tab opening:
+            // Immediately opens the meeting in a new tab of this same Chrome window.
+            // Inherits the user's active Google profile, login session, cookies, and camera/mic permissions
+            // without launching a separate Chrome window with a blank profile.
+            var tabOpened = false;
+            try {
+                activeMeetingTab = window.open(link, '_blank');
+                if (activeMeetingTab) {
+                    tabOpened = true;
+                }
+            } catch (tabErr) {
+                console.warn('Could not open new tab directly:', tabErr);
+            }
+
+            if (!tabOpened || !activeMeetingTab) {
+                showToast('Notice: Browser may have blocked the popup tab. Click "Re-open Meeting Tab" below or allow popups.', 'warning');
+            }
+
+            var btnJoin = document.getElementById('btn-join');
+            btnJoin.disabled = true;
+            btnJoin.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Connecting...</span>';
+            lucide.createIcons();
+
+            try {
+                var res = await fetch('/meeting/join', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ link: link, open_mode: 'same_window_tab' })
+                });
+
+                var data = await res.json();
+
+                if (res.ok && data.success) {
+                    currentMeetingRunning = true;
+                    activeSessionId = data.session_id || null;
+                    showLivePanel(data.status || 'joining', data.message, data.platform, data.mode, data.cdp_attached);
+                    startStatusPolling();
+                    showToast(data.message || 'Meeting opened in new tab. Capturing discussion.', 'success');
+                } else {
+                    showToast(data.message || 'Unable to join meeting with the provided URL.', 'error');
+                    showLivePanel(data.status || 'failed', data.message || 'Join failed', data.platform, data.mode, data.cdp_attached);
+                }
+            } catch (err) {
+                showToast('Network error communicating with meeting join API: ' + (err.message || err), 'error');
+            } finally {
+                btnJoin.disabled = false;
+                btnJoin.innerHTML = '<i data-lucide="play" class="w-4 h-4"></i><span>Join Meeting</span>';
+                lucide.createIcons();
+            }
+        }
+
+        function handleReopenTab() {
+            var linkInput = document.getElementById('meeting-link-input');
+            var link = (linkInput.value || '').trim() || lastMeetingUrl;
+            if (!link) {
+                showToast('No meeting link specified to re-open.', 'warning');
+                return;
+            }
+            if (!/^https?:\/\//i.test(link)) {
+                link = 'https://' + link;
+            }
+            lastMeetingUrl = link;
+            activeMeetingTab = window.open(link, '_blank');
+            showToast('Meeting tab opened in this Chrome window.', 'info');
+        }
+
+        async function handleLaunchCdpBrowser() {
+            try {
+                showToast('Launching Chrome with Remote Debugging (port 9222)...', 'info');
+                var res = await fetch('/meeting/launch-cdp-browser', { method: 'POST' });
+                var data = await res.json();
+                if (res.ok && data.success) {
+                    showToast(data.message || 'Chrome launched with automation support on port 9222!', 'success');
+                } else {
+                    showToast(data.message || 'Could not launch automation-ready Chrome.', 'error');
+                }
+            } catch (err) {
+                showToast('Network error launching Chrome: ' + (err.message || err), 'error');
+            }
+        }
+
+        async function handleConfirmJoined() {
+            var btnConfirm = document.getElementById('btn-confirm-call');
+            if (btnConfirm) {
+                btnConfirm.disabled = true;
+                btnConfirm.innerHTML = '<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i><span>Confirming...</span>';
+                lucide.createIcons();
+            }
+            try {
+                var res = await fetch('/meeting/confirm-joined', { method: 'POST' });
+                var data = await res.json();
+                if (res.ok && data.success) {
+                    updateMeetingStatus('joined', data.message || 'In Meeting (Active Call Confirmed)');
+                    showToast('Status updated: Active in call.', 'success');
+                } else {
+                    showToast(data.detail || data.message || 'Could not confirm call status.', 'error');
+                }
+            } catch (err) {
+                showToast('Network error confirming call status: ' + (err.message || err), 'error');
+            } finally {
+                if (btnConfirm) {
+                    btnConfirm.disabled = false;
+                    btnConfirm.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5"></i><span>I\'m In Call (Active)</span>';
+                    lucide.createIcons();
+                }
+            }
+        }
+
+        // ========================================================
+        // 3. Meeting Stop & Finalization (POST /meeting/stop)
+        // ========================================================
+        async function handleStopMeeting() {
+            var btnStop = document.getElementById('btn-stop');
+            btnStop.disabled = true;
+            btnStop.innerHTML = '<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i><span>Finalizing Project...</span>';
+            lucide.createIcons();
+
+            try {
+                var res = await fetch('/meeting/stop', { method: 'POST' });
+                var data = await res.json();
+
+                currentMeetingRunning = false;
+                stopStatusPolling();
+
+                // Hide live panel
+                document.getElementById('meeting-live-panel').classList.add('hidden');
+                updateGlobalStatusPill('stopped', 'Meeting Stopped');
+
+                // If project finalized
+                if (data.project_id || (data.details && data.details.project_id)) {
+                    var projId = data.project_id || data.details.project_id;
+                    var projName = data.project_name || (data.details && data.details.project_name) || 'Finalized Project';
+                    var projPath = data.project_path || (data.details && data.details.project_path) || '';
+                    var runUrl = data.running_url || (data.details && data.details.running_url) || 'http://127.0.0.1:8001';
+
+                    lastFinalizedId = projId;
+                    lastFinalizedUrl = runUrl;
+
+                    var banner = document.getElementById('finalized-project-banner');
+                    document.getElementById('final-project-title').textContent = projName;
+                    document.getElementById('final-project-path').textContent = projPath || 'Generated and ready';
+                    banner.classList.remove('hidden');
+
+                    // Refresh projects badge count
+                    loadProjectsList();
+                    showToast('Project finalized: ' + projName, 'success');
+                } else {
+                    showToast(data.message || 'Meeting stopped.', 'info');
+                }
+            } catch (err) {
+                showToast('Error stopping meeting: ' + (err.message || err), 'error');
+            } finally {
+                btnStop.disabled = false;
+                btnStop.innerHTML = '<i data-lucide="square" class="w-3.5 h-3.5 fill-current"></i><span>Stop & Finalize Project</span>';
+                lucide.createIcons();
+            }
+        }
+
+        async function openProjectPreview() {
+            if (lastFinalizedId) {
+                try {
+                    var res = await fetch('/projects/' + encodeURIComponent(lastFinalizedId) + '/run', { method: 'POST' });
+                    var data = await res.json();
+                    if (data.success && data.running_url) {
+                        window.open(data.running_url, '_blank');
+                        return;
+                    }
+                } catch (e) {}
+            }
+            window.open(lastFinalizedUrl || 'http://127.0.0.1:8001', '_blank');
+        }
+
+        function downloadFinalProjectZip() {
+            if (lastFinalizedId) {
+                window.location.href = '/projects/' + encodeURIComponent(lastFinalizedId) + '/download';
+            }
+        }
+
+        // ========================================================
+        // 4. Meeting Status Updates & Polling
+        // ========================================================
+        function showLivePanel(status, message, platform, mode, cdpAttached) {
+            var panel = document.getElementById('meeting-live-panel');
+            panel.classList.remove('hidden');
+            updateMeetingStatus(status, message, platform, mode, cdpAttached);
+        }
+
+        function updateMeetingStatus(status, message, platform, mode, cdpAttached) {
+            var dot = document.getElementById('card-status-dot');
+            var title = document.getElementById('card-status-title');
+            var sub = document.getElementById('card-status-subtitle');
+            var msgBox = document.getElementById('card-status-message');
+            var badge = document.getElementById('card-platform-badge');
+            var modeBadge = document.getElementById('card-mode-badge');
+
+            if (modeBadge) {
+                if (cdpAttached) {
+                    modeBadge.textContent = 'CDP ATTACHED • FULL AUTOMATION';
+                    modeBadge.className = 'text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 uppercase tracking-wider border border-emerald-500/30';
+                } else {
+                    modeBadge.textContent = 'SAME-WINDOW TAB • GOOGLE LOGIN';
+                    modeBadge.className = 'text-[10px] font-mono px-2 py-0.5 rounded-full bg-brand-500/20 text-brand-300 uppercase tracking-wider border border-brand-500/30';
+                }
+            }
+
+            if (platform) {
+                badge.textContent = platform.replace(/_/g, ' ').toUpperCase();
+            }
+
+            if (message) {
+                msgBox.textContent = message;
+            }
+
+            dot.className = 'status-dot';
+            var existingAuthBtn = document.getElementById('btn-auth-browser');
+            if (existingAuthBtn) {
+                existingAuthBtn.remove();
+            }
+
+            if (status === 'joined') {
+                dot.classList.add('active');
+                title.textContent = 'Joined';
+                sub.textContent = message || 'Agent verified inside Google Meet call. Live audio & discussion capture active.';
+                updateGlobalStatusPill('active', 'Joined');
+            } else if (status === 'request_sent') {
+                dot.classList.add('waiting');
+                title.textContent = 'Request sent';
+                sub.textContent = message || 'Join request submitted. Awaiting admission or call connection.';
+                updateGlobalStatusPill('waiting', 'Request sent');
+            } else if (status === 'waiting_admission' || status === 'waiting_for_host') {
+                dot.classList.add('waiting');
+                title.textContent = 'Waiting for host';
+                sub.textContent = message || 'Waiting for host to admit AI Meeting Agent into the call.';
+                updateGlobalStatusPill('waiting', 'Waiting for host');
+            } else if (status === 'manual_action_required') {
+                dot.classList.add('waiting');
+                title.textContent = 'Manual action required';
+                sub.textContent = message || 'User action required in browser tab to proceed.';
+                updateGlobalStatusPill('waiting', 'Manual action');
+            } else if (status === 'login_required' || status === 'passcode_required') {
+                dot.classList.add('waiting');
+                var isDomainSwitch = (message || '').toLowerCase().includes('switch') || (message || '').toLowerCase().includes('organization');
+                title.textContent = 'Manual action required';
+                sub.textContent = isDomainSwitch 
+                    ? 'Meeting restricted to authorized organization accounts.' 
+                    : 'Host restricted meeting to signed-in Google accounts.';
+                updateGlobalStatusPill('waiting', 'Manual action');
+                var authBtn = document.createElement('button');
+                authBtn.id = 'btn-auth-browser';
+                authBtn.className = 'mt-3 px-3 py-1.5 rounded-lg bg-brand-500 hover:bg-brand-600 text-white font-medium text-xs flex items-center gap-1.5 transition-colors cursor-pointer';
+                authBtn.innerHTML = '<i data-lucide="chrome" class="w-3.5 h-3.5"></i><span>' + (isDomainSwitch ? 'Switch / Sign in to Google Workspace &rarr;' : 'Sign in to Google Account &rarr;') + '</span>';
+                authBtn.onclick = async function() {
+                    try {
+                        var r = await fetch('/meeting/auth-browser', { method: 'POST' });
+                        var d = await r.json();
+                        showToast(d.message || 'Chromium authentication browser opened.', 'info');
+                    } catch (e) {
+                        showToast('Error opening browser: ' + (e.message || e), 'error');
+                    }
+                };
+                msgBox.appendChild(authBtn);
+                lucide.createIcons();
+            } else if (status === 'admission_denied') {
+                dot.classList.add('failed');
+                title.textContent = 'Access Restricted / Host Denied Admission';
+                sub.textContent = 'Google Meet blocked entry — host admission denied or organization domain restriction';
+                updateGlobalStatusPill('failed', 'Access Denied');
+                var switchNeeded = (message || '').toLowerCase().includes('switch') || (message || '').toLowerCase().includes('account') || (message || '').toLowerCase().includes('workspace');
+                if (switchNeeded) {
+                    var authBtn = document.createElement('button');
+                    authBtn.id = 'btn-auth-browser';
+                    authBtn.className = 'mt-3 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-medium text-xs flex items-center gap-1.5 transition-colors cursor-pointer';
+                    authBtn.innerHTML = '<i data-lucide="chrome" class="w-3.5 h-3.5"></i><span>Open Browser to Switch Account &rarr;</span>';
+                    authBtn.onclick = async function() {
+                        try {
+                            var r = await fetch('/meeting/auth-browser', { method: 'POST' });
+                            var d = await r.json();
+                            showToast(d.message || 'Chromium authentication browser opened.', 'info');
+                        } catch (e) {
+                            showToast('Error opening browser: ' + (e.message || e), 'error');
+                        }
+                    };
+                    msgBox.appendChild(authBtn);
+                    lucide.createIcons();
+                }
+            } else if (status === 'failed') {
+                dot.classList.add('failed');
+                title.textContent = 'Meeting Unavailable / Join Failed';
+                sub.textContent = message || 'Unable to join meeting. Please verify meeting URL or organizer settings.';
+                updateGlobalStatusPill('failed', 'Join Failed');
+            } else if (status === 'stopped') {
+                dot.classList.add('idle');
+                title.textContent = 'Session Stopped';
+                sub.textContent = 'Browser resources released';
+                updateGlobalStatusPill('idle', 'Stopped');
+            } else if (status === 'joining') {
+                dot.classList.add('active');
+                var isTabMode = (message || '').toLowerCase().includes('tab') || (message || '').toLowerCase().includes('chrome');
+                title.textContent = isTabMode ? 'Manual action required' : 'Detecting Meeting Lobby...';
+                sub.textContent = message || (isTabMode 
+                    ? 'Using your active Google login in this Chrome window. Click Join in the meeting tab, or launch Automation-Ready Chrome.' 
+                    : 'Entering meeting lobby and checking devices...');
+                updateGlobalStatusPill('active', isTabMode ? 'Manual action' : 'Joining');
+            } else {
+                dot.classList.add('connecting');
+                title.textContent = 'Connecting... (' + (status || 'navigating') + ')';
+                sub.textContent = 'Navigating automated browser to meeting lobby';
+                updateGlobalStatusPill('connecting', status || 'Connecting');
+            }
+        }
+
+        function updateGlobalStatusPill(type, text) {
+            var dot = document.getElementById('live-indicator-dot');
+            var pill = document.getElementById('live-status-pill');
+            dot.className = 'status-dot ' + (type || 'idle');
+            pill.textContent = text || 'Idle';
+        }
+
+        function startStatusPolling() {
+            if (pollTimer) clearInterval(pollTimer);
+            pollTimer = setInterval(pollMeetingStatus, 2500);
+        }
+
+        function stopStatusPolling() {
+            if (pollTimer) {
+                clearInterval(pollTimer);
+                pollTimer = null;
+            }
+        }
+
+        async function pollMeetingStatus() {
+            try {
+                var res = await fetch('/meeting/status');
+                if (!res.ok) return;
+                var data = await res.json();
+
+                if (data.running) {
+                    showLivePanel(data.join_status, data.message, data.platform, data.mode, data.cdp_attached);
+                    if (data.transcript && data.transcript.trim()) {
+                        var tBox = document.getElementById('card-transcript-text');
+                        if (tBox) {
+                            tBox.textContent = data.transcript;
+                            tBox.scrollTop = tBox.scrollHeight;
+                        }
+                    }
+                } else if (currentMeetingRunning && !data.running) {
+                    currentMeetingRunning = false;
+                    stopStatusPolling();
+                    updateMeetingStatus('stopped', data.message || 'Meeting stopped', data.platform, data.mode, data.cdp_attached);
+                }
+            } catch (err) {
+                // Background poll ignore
+            }
+        }
+
+        // ========================================================
+        // 5. Projects Dashboard (GET /projects, GET /files, GET /download)
+        // ========================================================
+        async function loadProjectsList() {
+            var container = document.getElementById('projects-list-container');
+            var totalBadge = document.getElementById('projects-total-count');
+            var navBadge = document.getElementById('projects-badge');
+
+            try {
+                var res = await fetch('/projects');
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                var data = await res.json();
+
+                var projects = data.projects || [];
+                totalBadge.textContent = projects.length;
+                navBadge.textContent = projects.length;
+
+                if (!projects.length) {
+                    container.innerHTML = '<div class="p-8 text-center text-xs text-slate-500">No generated projects found yet.<br>Join a meeting to create your first project.</div>';
+                    return;
+                }
+
+                container.innerHTML = '';
+                projects.forEach(function(p, idx) {
+                    var item = document.createElement('div');
+                    item.setAttribute('data-proj-id', String(p.id));
+                    item.className = 'p-3 rounded-xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.06] cursor-pointer transition-all ' + (selectedProjectId === p.id ? 'border-brand-500/50 bg-brand-500/10' : '');
+                    item.onclick = function() { selectProject(p); };
+
+                    var pName = p.project_name || p.id;
+                    var fileCount = p.file_count || 0;
+
+                    item.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <h4 class="font-bold text-white text-xs tracking-tight truncate max-w-[200px]">${pName}</h4>
+                            <span class="text-[10px] font-mono text-slate-400 bg-white/5 px-1.5 py-0.5 rounded">${fileCount} files</span>
+                        </div>
+                        <p class="text-[11px] font-mono text-slate-500 truncate mt-1">${p.project_path || p.id}</p>
+                    `;
+                    container.appendChild(item);
+                });
+
+                // Auto-select first project if none selected
+                if (!selectedProjectId && projects.length) {
+                    selectProject(projects[0]);
+                } else if (selectedProjectId) {
+                    updateProjectSelectionStyles(selectedProjectId);
+                }
+            } catch (err) {
+                container.innerHTML = '<div class="p-6 text-center text-xs text-red-400">Failed to load projects: ' + err.message + '</div>';
+            }
+        }
+
+        function updateProjectSelectionStyles(selectedId) {
+            var container = document.getElementById('projects-list-container');
+            if (!container) return;
+            var items = container.querySelectorAll('[data-proj-id]');
+            items.forEach(function(el) {
+                if (el.getAttribute('data-proj-id') === String(selectedId)) {
+                    el.className = 'p-3 rounded-xl border border-brand-500/50 bg-brand-500/10 cursor-pointer transition-all';
+                } else {
+                    el.className = 'p-3 rounded-xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.06] cursor-pointer transition-all';
+                }
+            });
+        }
+
+        async function selectProject(proj) {
+            selectedProjectId = proj.id;
+            updateProjectSelectionStyles(proj.id);
+
+            document.getElementById('proj-detail-title').textContent = proj.project_name || proj.id;
+            document.getElementById('proj-detail-path').textContent = proj.project_path || proj.id;
+            document.getElementById('proj-detail-status').classList.remove('hidden');
+
+            // Enable actions
+            document.getElementById('btn-open-project').disabled = false;
+            document.getElementById('btn-download-project').disabled = false;
+
+            // Load files for this project
+            await loadProjectFiles(proj.id);
+        }
+
+        async function loadProjectFiles(projectId) {
+            var treeBox = document.getElementById('files-tree-container');
+            var countBadge = document.getElementById('files-count-badge');
+            treeBox.innerHTML = '<div class="p-6 text-center text-slate-500"><i data-lucide="loader-2" class="w-4 h-4 animate-spin inline-block mr-1"></i> Loading files...</div>';
+            lucide.createIcons();
+
+            try {
+                var res = await fetch('/projects/' + encodeURIComponent(projectId) + '/files');
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                var data = await res.json();
+
+                var files = data.files || [];
+                countBadge.textContent = files.length + ' items';
+
+                if (!files.length) {
+                    treeBox.innerHTML = '<div class="p-6 text-center text-slate-500">No files found in project.</div>';
+                    return;
+                }
+
+                treeBox.innerHTML = '';
+                var listEl = document.createElement('ul');
+                listEl.className = 'space-y-1.5';
+
+                files.forEach(function(f) {
+                    var li = document.createElement('li');
+                    var isDir = f.type === 'directory';
+                    li.className = 'flex items-center justify-between px-2 py-1 rounded hover:bg-white/5 transition-colors ' + (isDir ? 'text-accent-300 font-semibold' : 'text-slate-300');
+
+                    var sizeText = f.size_bytes !== undefined ? formatBytes(f.size_bytes) : '';
+
+                    li.innerHTML = `
+                        <div class="flex items-center gap-2 truncate">
+                            <i data-lucide="${isDir ? 'folder' : 'file-code'}" class="w-3.5 h-3.5 flex-shrink-0 ${isDir ? 'text-accent-400' : 'text-slate-400'}"></i>
+                            <span class="truncate">${f.path}</span>
+                        </div>
+                        <span class="text-[10px] text-slate-500 flex-shrink-0 ml-2 font-mono">${sizeText}</span>
+                    `;
+                    listEl.appendChild(li);
+                });
+
+                treeBox.appendChild(listEl);
+                lucide.createIcons();
+            } catch (err) {
+                treeBox.innerHTML = '<div class="p-6 text-center text-xs text-red-400">Error loading files: ' + err.message + '</div>';
+            }
+        }
+
+        async function openSelectedProjectPreview() {
+            if (!selectedProjectId) return;
+            var btn = document.getElementById('btn-open-project');
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i><span>Starting Preview...</span>';
+            lucide.createIcons();
+            try {
+                var res = await fetch('/projects/' + encodeURIComponent(selectedProjectId) + '/run', { method: 'POST' });
+                var data = await res.json();
+                if (data.success && data.running_url) {
+                    window.open(data.running_url, '_blank');
+                    showToast('Live preview active on ' + data.running_url, 'success');
+                } else {
+                    showToast('Could not launch project preview: ' + (data.message || 'Unknown error'), 'error');
+                }
+            } catch (err) {
+                showToast('Error launching project preview: ' + (err.message || err), 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="external-link" class="w-3.5 h-3.5"></i><span>Open Project</span>';
+                lucide.createIcons();
+            }
+        }
+
+        function downloadSelectedProjectZip() {
+            if (!selectedProjectId) return;
+            window.location.href = '/projects/' + encodeURIComponent(selectedProjectId) + '/download';
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            var k = 1024;
+            var sizes = ['B', 'KB', 'MB'];
+            var i = Math.floor(Math.log(bytes) / Math.log(k));
+            return (bytes / Math.pow(k, i)).toFixed(1) + ' ' + sizes[i];
+        }
+
+        // ========================================================
+        // 6. WebSocket Integration (/ws)
+        // ========================================================
+        function initWebSocket() {
+            var proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            var wsUrl = proto + '//' + window.location.host + '/ws';
+
+            try {
+                ws = new WebSocket(wsUrl);
+
+                ws.onmessage = function(e) {
+                    try {
+                        var m = JSON.parse(e.data);
+                        if (!m) return;
+
+                        if (m.action === 'meeting_status') {
+                            showLivePanel(m.join_status, m.message, m.platform);
+                        } else if (m.action === 'transcript_update') {
+                            var tBox = document.getElementById('card-transcript-text');
+                            if (tBox && m.text) {
+                                tBox.textContent = m.text;
+                                tBox.scrollTop = tBox.scrollHeight;
+                            }
+                        } else if (m.action === 'log') {
+                            var msgBox = document.getElementById('card-status-message');
+                            if (msgBox && m.message) {
+                                msgBox.textContent = m.message;
+                            }
+                        } else if (m.action === 'project_ready') {
+                            lastFinalizedUrl = m.url || 'http://127.0.0.1:8001';
+                            lastFinalizedId = m.project_id || null;
+                            loadProjectsList();
+                        }
+                    } catch (err) {}
+                };
+
+                ws.onclose = function() {
+                    clearTimeout(wsReconnectTimer);
+                    wsReconnectTimer = setTimeout(initWebSocket, 4000);
+                };
+
+                ws.onerror = function() {
+                    ws.close();
+                };
+            } catch (err) {
+                // WS fallback to polling
+            }
+        }
+
+        // ========================================================
+        // 7. User Authentication & Google Account Integration
+        // ========================================================
+        var currentUser = null;
+        var selectedHistorySessionId = null;
+
+        async function initAuthUI() {
+            var userWrapper = document.getElementById('user-profile-wrapper');
+            var googleWrapper = document.getElementById('google-conn-wrapper');
+
+            try {
+                var meRes = await fetch('/auth/me');
+                var meData = await meRes.json();
+                currentUser = meData.authenticated ? meData.user : null;
+
+                if (currentUser) {
+                    var initial = (currentUser.full_name || currentUser.username || 'U')[0].toUpperCase();
+                    userWrapper.innerHTML = `
+                        <div class="flex items-center gap-2 px-2.5 py-1 rounded-xl bg-white/5 border border-white/10 text-xs">
+                            <div class="w-6 h-6 rounded-lg bg-gradient-to-tr from-brand-500 to-accent-500 flex items-center justify-center font-bold text-white text-[11px]">
+                                ${initial}
+                            </div>
+                            <span class="text-slate-200 font-medium">${currentUser.full_name || currentUser.username}</span>
+                            <button onclick="handleLogout()" title="Log Out" class="ml-1 text-slate-400 hover:text-red-400 transition-colors p-1">
+                                <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    window.location.href = "/login";
+                    return;
+                }
+
+                // Google Status
+                var gRes = await fetch('/auth/google/status');
+                var gData = await gRes.json();
+
+                if (gData.connected) {
+                    googleWrapper.innerHTML = `
+                        <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z"/><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5.1 3.7-8.8z"/><path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.3 0 15.2s.7 5.5 1.9 7.9l3.7-2.9c0-.2 0-.2 0-.2z"/><path fill="#34A853" d="M12 23.5c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2-6.4-4.8L1.9 17c1.8 3.7 5.6 6.5 10.1 6.5z"/></svg>
+                            <span class="hidden sm:inline">${gData.google_email || 'Google Connected'}</span>
+                            <button onclick="handleDisconnectGoogle()" title="Disconnect Google Account" class="ml-1 text-slate-400 hover:text-red-400">
+                                <i data-lucide="x" class="w-3 h-3"></i>
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    googleWrapper.innerHTML = `
+                        <button onclick="handleConnectGoogle()" class="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 text-xs transition-colors">
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z"/><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5.1 3.7-8.8z"/><path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.3 0 15.2s.7 5.5 1.9 7.9l3.7-2.9c0-.2 0-.2 0-.2z"/><path fill="#34A853" d="M12 23.5c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2-6.4-4.8L1.9 17c1.8 3.7 5.6 6.5 10.1 6.5z"/></svg>
+                            <span>Connect Google</span>
+                        </button>
+                    `;
+                }
+                lucide.createIcons();
+            } catch (err) {
+                console.warn('Auth UI init error:', err);
+            }
+        }
+
+        function openGoogleSetupModal(data) {
+            var modal = document.getElementById('google-setup-modal');
+            if (!modal) return;
+            if (data && data.setup_guide && data.setup_guide.redirect_uri) {
+                var uriSpan = document.getElementById('google-setup-redirect-uri');
+                if (uriSpan) uriSpan.textContent = data.setup_guide.redirect_uri;
+            }
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeGoogleSetupModal() {
+            var modal = document.getElementById('google-setup-modal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function copyRedirectUri() {
+            var uri = document.getElementById('google-setup-redirect-uri').textContent.trim();
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(uri).then(function() {
+                    showToast('Copied redirect URI to clipboard!', 'success');
+                }).catch(function() {
+                    showToast('Redirect URI: ' + uri, 'info');
+                });
+            } else {
+                showToast('Redirect URI: ' + uri, 'info');
+            }
+        }
+
+        async function handleLaunchAuthBrowser() {
+            var btn = document.getElementById('btn-launch-auth-browser');
+            if (btn) btn.disabled = true;
+            try {
+                var res = await fetch('/meeting/auth-browser', { method: 'POST' });
+                var data = await res.json();
+                showToast(data.message || 'Browser opened. Sign in to Google and close when done.', 'info');
+                closeGoogleSetupModal();
+            } catch (err) {
+                showToast('Failed to launch browser: ' + err.message, 'error');
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        async function handleConnectGoogle() {
+            try {
+                var res = await fetch('/auth/google/url');
+                var data = await res.json();
+                if (data.success && data.url) {
+                    window.location.href = data.url;
+                } else if (!data.configured) {
+                    openGoogleSetupModal(data);
+                } else {
+                    showToast(data.message || 'Google OAuth credentials not configured in .env yet.', 'warning');
+                }
+            } catch (err) {
+                showToast('Could not start Google connection: ' + err.message, 'error');
+            }
+        }
+
+        async function handleDisconnectGoogle() {
+            showConfirmModal(
+                'Disconnect Google Account',
+                'Are you sure you want to disconnect your Google account from AI Meeting Agent? You can reconnect anytime.',
+                'Disconnect Account',
+                async function() {
+                    try {
+                        var res = await fetch('/auth/google/disconnect', { method: 'POST' });
+                        var data = await res.json();
+                        if (data.success) {
+                            showToast('Google account disconnected successfully.', 'success');
+                            initAuthUI();
+                        } else {
+                            showToast(data.message || 'Failed to disconnect Google account.', 'error');
+                        }
+                    } catch (err) {
+                        showToast('Error: ' + err.message, 'error');
+                    }
+                }
+            );
+        }
+
+        async function handleLogout() {
+            try {
+                await fetch('/auth/logout', { method: 'POST' });
+                localStorage.removeItem('auth_token');
+                window.location.href = "/login";
+            } catch (err) {
+                window.location.href = "/login";
+            }
+        }
+
+        // ========================================================
+        // 8. Meeting History & Summaries
+        // ========================================================
+        async function loadMeetingHistory() {
+            var container = document.getElementById('history-list-container');
+            var badge = document.getElementById('history-count-badge');
+            if (!container) return;
+
+            try {
+                var res = await fetch('/meeting/history');
+                var data = await res.json();
+                var meetings = data.meetings || [];
+
+                badge.textContent = meetings.length + (meetings.length === 1 ? ' session' : ' sessions');
+
+                if (meetings.length === 0) {
+                    container.innerHTML = `<div class="p-8 text-center text-slate-500 text-xs">No recorded meetings yet. Join a meeting from the first tab to capture discussions.</div>`;
+                    return;
+                }
+
+                container.innerHTML = meetings.map(function(m) {
+                    var isSelected = m.session_id === selectedHistorySessionId;
+                    var dateStr = m.created_at ? new Date(m.created_at).toLocaleString() : 'Recent';
+                    var summaryTag = m.has_summary
+                        ? `<span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Summary Ready</span>`
+                        : `<span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/5 text-slate-400">Recorded</span>`;
+
+                    return `
+                        <div onclick="selectMeetingSession('${m.session_id}', '${dateStr}')" class="p-3.5 rounded-xl border transition-all cursor-pointer ${isSelected ? 'bg-brand-500/10 border-brand-500/50 shadow-md' : 'bg-black/30 border-white/5 hover:border-white/20'}">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="font-mono text-xs font-semibold text-white truncate max-w-[180px]">${m.session_id}</span>
+                                ${summaryTag}
+                            </div>
+                            <p class="text-[11px] text-slate-400 truncate">${m.meeting_link || 'Autonomous Capture Session'}</p>
+                            <p class="text-[10px] font-mono text-slate-500 mt-1">${dateStr}</p>
+                        </div>
+                    `;
+                }).join('');
+
+                lucide.createIcons();
+
+                // Auto-select first session if none selected
+                if (!selectedHistorySessionId && meetings.length > 0) {
+                    var first = meetings[0];
+                    selectMeetingSession(first.session_id, first.created_at ? new Date(first.created_at).toLocaleString() : 'Recent');
+                }
+            } catch (err) {
+                container.innerHTML = `<div class="p-8 text-center text-red-400 text-xs">Failed to load meeting history: ${err.message}</div>`;
+            }
+        }
+
+        async function selectMeetingSession(sessionId, dateStr) {
+            selectedHistorySessionId = sessionId;
+            loadMeetingHistory(); // update selection highlight
+
+            var emptyState = document.getElementById('summary-empty-state');
+            var contentState = document.getElementById('summary-content-state');
+            var idElem = document.getElementById('summary-session-id');
+            var dateElem = document.getElementById('summary-session-date');
+            var overviewElem = document.getElementById('summary-overview-text');
+            var keypointsElem = document.getElementById('summary-keypoints-list');
+            var decisionsElem = document.getElementById('summary-decisions-list');
+            var actionsElem = document.getElementById('summary-actions-container');
+
+            idElem.textContent = sessionId;
+            dateElem.textContent = dateStr || 'Recorded Session';
+
+            emptyState.classList.add('hidden');
+            contentState.classList.remove('hidden');
+
+            overviewElem.innerHTML = `<span class="text-slate-500 italic">Fetching meeting summary...</span>`;
+            keypointsElem.innerHTML = '';
+            decisionsElem.innerHTML = '';
+            actionsElem.innerHTML = '';
+
+            try {
+                var res = await fetch('/meeting/summary/' + sessionId);
+                if (!res.ok) {
+                    overviewElem.innerHTML = `
+                        <div class="text-center py-4 space-y-2">
+                            <p class="text-slate-400 text-xs">No AI summary has been synthesized for this session yet.</p>
+                            <button onclick="triggerSessionSummarize('${sessionId}')" class="btn-gradient px-3 py-1.5 rounded-xl text-xs font-medium text-white shadow-md">Generate AI Summary Now</button>
+                        </div>
+                    `;
+                    return;
+                }
+
+                var data = await res.json();
+                var s = data.summary;
+
+                overviewElem.textContent = s.overview || 'Meeting discussion recorded.';
+
+                keypointsElem.innerHTML = (s.key_points && s.key_points.length > 0)
+                    ? s.key_points.map(function(k) { return `<li class="flex items-start gap-2"><span class="text-brand-400">•</span><span>${k}</span></li>`; }).join('')
+                    : `<li class="text-slate-500 italic">Discussion topics captured in project specification.</li>`;
+
+                decisionsElem.innerHTML = (s.decisions && s.decisions.length > 0)
+                    ? s.decisions.map(function(d) { return `<li class="flex items-start gap-2"><span class="text-emerald-400">✓</span><span>${d}</span></li>`; }).join('')
+                    : `<li class="text-slate-500 italic">No formal decisions recorded.</li>`;
+
+                actionsElem.innerHTML = (s.action_items && s.action_items.length > 0)
+                    ? s.action_items.map(function(a) {
+                        var prioColor = a.priority === 'High' ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+                        return `
+                            <div class="p-2.5 rounded-xl bg-black/30 border border-white/5 flex items-center justify-between text-xs">
+                                <span class="text-slate-200">${a.task || a}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-slate-400 text-[11px]">${a.owner || 'Team'}</span>
+                                    <span class="text-[10px] font-mono px-2 py-0.5 rounded-full border ${prioColor}">${a.priority || 'Medium'}</span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')
+                    : `<div class="p-3 text-center text-slate-500 text-xs italic">No open action items.</div>`;
+
+                lucide.createIcons();
+            } catch (err) {
+                overviewElem.innerHTML = `<span class="text-red-400">Failed to load summary: ${err.message}</span>`;
+            }
+        }
+
+        async function triggerSessionSummarize(sessionId) {
+            var targetSession = sessionId || selectedHistorySessionId || activeSessionId;
+            var btn = document.getElementById('btn-re-summarize');
+            if (btn) btn.disabled = true;
+
+            try {
+                var res = await fetch('/meeting/summarize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: targetSession })
+                });
+                var data = await res.json();
+                if (data.success) {
+                    showToast('AI meeting summary generated successfully!', 'success');
+                    if (targetSession) selectMeetingSession(targetSession);
+                } else {
+                    showToast(data.message || 'Summarization failed.', 'warning');
+                }
+            } catch (err) {
+                showToast('Error generating summary: ' + err.message, 'error');
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        // Check for Google connection callback params
+        var urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('google_connected') === 'success') {
+            showToast('Your Google Account has been successfully connected!', 'success');
+            history.replaceState(null, '', window.location.pathname);
+        } else if (urlParams.get('google_error')) {
+            showToast('Google Connection Error: ' + urlParams.get('google_error'), 'error');
+            history.replaceState(null, '', window.location.pathname);
+        }
+
+        // Initial Boot
+        initAuthUI();
+        initWebSocket();
+        pollMeetingStatus();
+        loadProjectsList();
+    </script>
+</body>
+</html>

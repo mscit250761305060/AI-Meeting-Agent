@@ -19,7 +19,7 @@ def run_autonomous_engine(
     project_path,
     max_iterations=3
 ):
-    from server.ws_manager import manager
+    from app.services.ws_manager import manager
     
     iteration = 0
     result = {"success": False, "errors": []}
@@ -36,12 +36,15 @@ def run_autonomous_engine(
             if not errors:
                 errors = ["Server failed to start without specific logs."]
                 
-            print("Fixing Errors with AI...")
-            manager.broadcast_sync({"action": "log", "message": f"Detected errors. Fixing with AI..."})
+            print("Server errors detected...")
+            manager.broadcast_sync({"action": "log", "message": f"Detected errors in server execution."})
             
-            response = fix_project_errors("\n".join(errors))
-            if response:
-                overwrite_project_files(response, project_path)
+            try:
+                response = fix_project_errors("\n".join(errors))
+                if response:
+                    overwrite_project_files(response, project_path)
+            except Exception as e:
+                print(f"Error fix skipped (AI unavailable): {e}")
         else:
             print("Project Running Successfully 🎉")
             manager.broadcast_sync({"action": "log", "message": "Project Running Successfully 🎉"})
